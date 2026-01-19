@@ -1,10 +1,11 @@
-import { useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { BettingControls } from '../UI/BettingControls';
 import { ChipDisplay } from '../UI/ChipDisplay';
 import { RollCounter } from '../UI/RollCounter';
 import { HandResult } from '../UI/HandResult';
 import { PayoutTable } from '../UI/PayoutTable';
+import { SettingsPanel } from '../UI/SettingsPanel';
 import { useAudio } from '../../hooks/useAudio';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useShakeDetection } from '../../hooks/useShakeDetection';
@@ -21,8 +22,9 @@ export function GameUI({ onRoll }: GameUIProps) {
   const bankroll = useGameStore((state) => state.bankroll);
   const currentBet = useGameStore((state) => state.currentBet);
   const newRound = useGameStore((state) => state.newRound);
-  const soundEnabled = useGameStore((state) => state.soundEnabled);
-  const toggleSound = useGameStore((state) => state.toggleSound);
+  const shakeEnabled = useGameStore((state) => state.shakeEnabled);
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { playRoll, initAudio } = useAudio();
   const { vibrateRoll } = useHaptics();
@@ -39,15 +41,17 @@ export function GameUI({ onRoll }: GameUIProps) {
     onRoll(intensity);
   }, [initAudio, playRoll, vibrateRoll, onRoll]);
 
-  // Use ref to always have access to current canRoll and handleRoll values
+  // Use refs to always have access to current values (avoid stale closures)
   const canRollRef = useRef(canRoll);
   canRollRef.current = canRoll;
   const handleRollRef = useRef(handleRoll);
   handleRollRef.current = handleRoll;
+  const shakeEnabledRef = useRef(shakeEnabled);
+  shakeEnabledRef.current = shakeEnabled;
 
   const { isSupported: shakeSupported, hasPermission, requestPermission } = useShakeDetection({
     onShake: (intensity) => {
-      if (canRollRef.current) {
+      if (shakeEnabledRef.current && canRollRef.current) {
         handleRollRef.current(intensity);
       }
     },
@@ -80,13 +84,16 @@ export function GameUI({ onRoll }: GameUIProps) {
         <ChipDisplay />
         <RollCounter />
         <button
-          className="sound-toggle"
-          onClick={toggleSound}
-          aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'}
+          className="settings-button"
+          onClick={() => setSettingsOpen(true)}
+          aria-label="Open settings"
         >
-          {soundEnabled ? '🔊' : '🔇'}
+          ⚙️
         </button>
       </div>
+
+      {/* Settings panel */}
+      <SettingsPanel isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       {/* Center - Hand result */}
       <div className="ui-center">
@@ -114,7 +121,7 @@ export function GameUI({ onRoll }: GameUIProps) {
         </button>
 
         {/* Shake permission request for mobile */}
-        {shakeSupported && hasPermission === null && (
+        {shakeSupported && shakeEnabled && hasPermission === null && (
           <button
             className="shake-permission-button"
             onClick={handleRequestShakePermission}
@@ -123,7 +130,7 @@ export function GameUI({ onRoll }: GameUIProps) {
           </button>
         )}
 
-        {shakeSupported && hasPermission && gamePhase !== 'scoring' && (
+        {shakeSupported && shakeEnabled && hasPermission && gamePhase !== 'scoring' && (
           <div className="shake-hint">Shake your device to roll!</div>
         )}
       </div>

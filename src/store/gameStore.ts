@@ -36,6 +36,7 @@ export const useGameStore = create<GameState>()(
       currentHand: null,
       lastWin: 0,
       soundEnabled: true,
+      shakeEnabled: true,
 
       // Actions
       rollDice: () => {
@@ -158,6 +159,23 @@ export const useGameStore = create<GameState>()(
       toggleSound: () => {
         set({ soundEnabled: !get().soundEnabled });
       },
+
+      toggleShake: () => {
+        set({ shakeEnabled: !get().shakeEnabled });
+      },
+
+      resetBankroll: () => {
+        set({
+          dice: createInitialDice(),
+          rollsRemaining: 3,
+          isRolling: false,
+          bankroll: INITIAL_BANKROLL,
+          currentBet: MIN_BET,
+          gamePhase: 'betting',
+          currentHand: null,
+          lastWin: 0,
+        });
+      },
     }),
     {
       name: 'dice-poker-storage',
@@ -165,6 +183,7 @@ export const useGameStore = create<GameState>()(
         bankroll: state.bankroll,
         currentBet: state.currentBet,
         soundEnabled: state.soundEnabled,
+        shakeEnabled: state.shakeEnabled,
       }),
     }
   )

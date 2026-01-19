@@ -31,7 +31,8 @@
   gap: 1rem;
 }
 
-.sound-toggle {
+/* Settings button */
+.settings-button {
   background: rgba(0, 0, 0, 0.4);
   border: none;
   border-radius: 50%;
@@ -39,11 +40,15 @@
   height: 40px;
   font-size: 1.25rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.sound-toggle:hover {
+.settings-button:hover {
   background: rgba(0, 0, 0, 0.6);
+  transform: rotate(30deg);
 }
 
 /* Center area */
@@ -141,7 +146,7 @@
 /* Payout table container */
 .payout-container {
   position: absolute;
-  top: 1rem;
+  top: 4rem;
   right: 1rem;
   max-width: 180px;
 }
