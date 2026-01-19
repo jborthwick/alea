@@ -93,7 +93,13 @@ export function GameUI({ onRoll }: GameUIProps) {
       </div>
 
       {/* Settings panel */}
-      <SettingsPanel isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsPanel
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        shakeSupported={shakeSupported}
+        shakePermission={hasPermission}
+        onRequestShakePermission={handleRequestShakePermission}
+      />
 
       {/* Center - Hand result */}
       <div className="ui-center">
@@ -120,19 +126,6 @@ export function GameUI({ onRoll }: GameUIProps) {
           {buttonText}
         </button>
 
-        {/* Shake permission request for mobile */}
-        {shakeSupported && shakeEnabled && hasPermission === null && (
-          <button
-            className="shake-permission-button"
-            onClick={handleRequestShakePermission}
-          >
-            Enable Shake to Roll
-          </button>
-        )}
-
-        {shakeSupported && shakeEnabled && hasPermission && gamePhase !== 'scoring' && (
-          <div className="shake-hint">Shake your device to roll!</div>
-        )}
       </div>
 
       {/* Payout table (collapsible on mobile) */}

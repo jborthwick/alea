@@ -5,14 +5,26 @@ import './SettingsPanel.css';
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  shakeSupported: boolean;
+  shakePermission: boolean | null;
+  onRequestShakePermission: () => Promise<void>;
 }
 
-export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
+export function SettingsPanel({
+  isOpen,
+  onClose,
+  shakeSupported,
+  shakePermission,
+  onRequestShakePermission,
+}: SettingsPanelProps) {
   const soundEnabled = useGameStore((state) => state.soundEnabled);
   const toggleSound = useGameStore((state) => state.toggleSound);
   const shakeEnabled = useGameStore((state) => state.shakeEnabled);
   const toggleShake = useGameStore((state) => state.toggleShake);
   const resetBankroll = useGameStore((state) => state.resetBankroll);
+
+  // Shake is only truly enabled if user wants it AND we have permission (or don't need it)
+  const shakeActuallyEnabled = shakeEnabled && shakeSupported && shakePermission !== false;
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -61,19 +73,40 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </button>
           </div>
 
-          {/* Shake toggle */}
-          <div className="settings-row">
-            <span className="settings-label">Shake to Roll</span>
-            <button
-              className={`settings-toggle ${shakeEnabled ? 'active' : ''}`}
-              onClick={toggleShake}
-              aria-label={shakeEnabled ? 'Disable shake to roll' : 'Enable shake to roll'}
-            >
-              <span className="toggle-track">
-                <span className="toggle-thumb" />
-              </span>
-            </button>
-          </div>
+          {/* Shake toggle - only show if device supports it */}
+          {shakeSupported && (
+            <div className="settings-row">
+              <div className="settings-label-group">
+                <span className="settings-label">Shake to Roll</span>
+                {shakePermission === null && shakeEnabled && (
+                  <span className="settings-label-hint">Tap to enable</span>
+                )}
+                {shakePermission === false && (
+                  <span className="settings-label-hint">Permission denied</span>
+                )}
+              </div>
+              <button
+                className={`settings-toggle ${shakeActuallyEnabled ? 'active' : ''}`}
+                onClick={async () => {
+                  if (!shakeEnabled) {
+                    // Turning on - request permission if needed
+                    if (shakePermission === null) {
+                      await onRequestShakePermission();
+                    }
+                    toggleShake();
+                  } else {
+                    // Turning off
+                    toggleShake();
+                  }
+                }}
+                aria-label={shakeActuallyEnabled ? 'Disable shake to roll' : 'Enable shake to roll'}
+              >
+                <span className="toggle-track">
+                  <span className="toggle-thumb" />
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="settings-divider" />

@@ -72,6 +72,17 @@
   font-size: 1rem;
 }
 
+.settings-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.settings-label-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+}
+
 /* Toggle switch */
 .settings-toggle {
   background: none;
