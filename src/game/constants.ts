@@ -59,6 +59,11 @@ export const TABLE_DEPTH = 7;   // Z dimension (taller)
 export const WALL_HEIGHT = 0.6;  // Visible rail height
 export const CEILING_HEIGHT = 4; // Invisible ceiling to contain dice
 
+// Playable area offset - keeps dice away from bottom UI
+// Positive Z is toward the camera (bottom of screen)
+export const PLAY_AREA_Z_OFFSET = -0.8;  // Shift play area toward back of table
+export const PLAY_AREA_DEPTH = 5;        // Reduced depth for playable area
+
 // Roll parameters
 export const MIN_ANGULAR_VELOCITY = 30;
 export const MAX_ANGULAR_VELOCITY = 55;

@@ -1,7 +1,7 @@
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useMemo } from 'react';
-import { TABLE_WIDTH, TABLE_DEPTH, WALL_HEIGHT, CEILING_HEIGHT } from '../../game/constants';
+import { TABLE_WIDTH, TABLE_DEPTH, WALL_HEIGHT, CEILING_HEIGHT, PLAY_AREA_DEPTH } from '../../game/constants';
 
 // Create felt texture programmatically
 function createFeltTexture(): THREE.CanvasTexture {
@@ -122,9 +122,15 @@ export function PlaySurface() {
         <CuboidCollider args={[halfWidth + wallThickness, CEILING_HEIGHT / 2, wallHalfThickness]} />
       </RigidBody>
 
-      {/* Front wall collider */}
+      {/* Front wall collider (at table edge) */}
       <RigidBody type="fixed" position={[0, CEILING_HEIGHT / 2, halfDepth + wallHalfThickness]}>
         <CuboidCollider args={[halfWidth + wallThickness, CEILING_HEIGHT / 2, wallHalfThickness]} />
+      </RigidBody>
+
+      {/* Inner front barrier - keeps dice in playable area above the UI */}
+      {/* This creates a safe zone at the bottom of the screen */}
+      <RigidBody type="fixed" position={[0, CEILING_HEIGHT / 2, PLAY_AREA_DEPTH / 2]}>
+        <CuboidCollider args={[halfWidth, CEILING_HEIGHT / 2, wallHalfThickness]} />
       </RigidBody>
 
       {/* Left wall collider */}
