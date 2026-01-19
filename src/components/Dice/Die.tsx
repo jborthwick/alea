@@ -157,8 +157,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   });
 
   // For held dice, use a static position
-  const heldPosition: [number, number, number] = [(id - 2) * 1.2, 0.5, -2.5];
-  const initialPosition: [number, number, number] = [(id - 2) * 1.2, 2.5, 0];
+  const heldPosition: [number, number, number] = [(id - 2) * 0.9, 0.5, -2.8];
+  const initialPosition: [number, number, number] = [(id - 2) * 0.9, 2.5, 0];
 
   // Common mesh props for interactivity
   const interactiveProps = canHold

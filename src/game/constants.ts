@@ -50,8 +50,8 @@ export const ANGULAR_DAMPING = 0.4;
 export const LINEAR_DAMPING = 0.15;
 
 // Dice appearance
-export const DICE_SIZE = 0.8;
-export const DICE_EDGE_RADIUS = 0.08;
+export const DICE_SIZE = 0.65;
+export const DICE_EDGE_RADIUS = 0.065;
 
 // Play area (portrait orientation - taller than wide for mobile)
 export const TABLE_WIDTH = 5;   // X dimension (narrower)
