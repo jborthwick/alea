@@ -5,6 +5,7 @@ import { RollCounter } from '../UI/RollCounter';
 import { HandResult } from '../UI/HandResult';
 import { PayoutTable } from '../UI/PayoutTable';
 import { useAudio } from '../../hooks/useAudio';
+import { useHaptics } from '../../hooks/useHaptics';
 import { useShakeDetection } from '../../hooks/useShakeDetection';
 import './GameUI.css';
 
@@ -23,6 +24,7 @@ export function GameUI({ onRoll }: GameUIProps) {
   const toggleSound = useGameStore((state) => state.toggleSound);
 
   const { playRoll, initAudio } = useAudio();
+  const { vibrateRoll } = useHaptics();
   const { isSupported: shakeSupported, hasPermission, requestPermission } = useShakeDetection({
     onShake: (intensity) => {
       if (canRoll) {
@@ -39,6 +41,7 @@ export function GameUI({ onRoll }: GameUIProps) {
   const handleRoll = (intensity?: number) => {
     initAudio();
     playRoll();
+    vibrateRoll();
     onRoll(intensity);
   };
 

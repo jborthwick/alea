@@ -19,7 +19,7 @@ src/
 │   ├── Game/           # Game.tsx, GameCanvas.tsx, GameUI.tsx
 │   └── UI/             # BettingControls, ChipDisplay, HandResult, PayoutTable, RollCounter
 ├── game/               # constants.ts, handEvaluator.ts
-├── hooks/              # useAudio.ts, useShakeDetection.ts
+├── hooks/              # useAudio.ts, useHaptics.ts, useShakeDetection.ts
 ├── physics/            # faceDetection.ts, impulseCalculator.ts
 ├── store/              # gameStore.ts (Zustand)
 └── types/              # game.ts
@@ -43,9 +43,11 @@ src/
 - Quaternion-based detection in `src/physics/faceDetection.ts`
 - Maps dice orientation to card values (9, 10, J, Q, K, A)
 
-### Audio
+### Audio & Haptics
 - Procedurally generated sounds (no external audio files)
 - Sounds: roll, collision, hold click, win, lose
+- Haptic feedback on Android (Vibration API)
+- Note: iOS Safari does not support the Vibration API - haptics gracefully degrade
 
 ## Commands
 ```bash

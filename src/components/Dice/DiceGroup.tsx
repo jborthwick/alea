@@ -3,6 +3,7 @@ import { Die } from './Die';
 import { useGameStore } from '../../store/gameStore';
 import type { CardValue } from '../../types/game';
 import { useAudio } from '../../hooks/useAudio';
+import { useHaptics } from '../../hooks/useHaptics';
 
 interface DiceGroupProps {
   rollTrigger: number;
@@ -19,6 +20,7 @@ export function DiceGroup({ rollTrigger, intensity = 0.7 }: DiceGroupProps) {
   const toggleHold = useGameStore((state) => state.toggleHold);
 
   const { playCollision, playHold } = useAudio();
+  const { vibrateCollision, vibrateHold } = useHaptics();
 
   // Can hold dice when in rolling phase, not mid-roll, and at least one roll has been made
   const canHold = gamePhase === 'rolling' && !isRolling && rollsRemaining < 3;
@@ -26,9 +28,10 @@ export function DiceGroup({ rollTrigger, intensity = 0.7 }: DiceGroupProps) {
   const handleHold = useCallback(
     (id: number) => {
       playHold();
+      vibrateHold();
       toggleHold(id);
     },
-    [playHold, toggleHold]
+    [playHold, vibrateHold, toggleHold]
   );
 
   const settledDiceRef = useRef<Set<number>>(new Set());
@@ -61,8 +64,9 @@ export function DiceGroup({ rollTrigger, intensity = 0.7 }: DiceGroupProps) {
       // Update the die value in the store
       updateDieValue(id, value as CardValue);
 
-      // Play collision sound
+      // Play collision sound and haptic feedback
       playCollision();
+      vibrateCollision();
 
       // Track that this die has settled
       settledDiceRef.current.add(id);
@@ -78,7 +82,7 @@ export function DiceGroup({ rollTrigger, intensity = 0.7 }: DiceGroupProps) {
         }, 100);
       }
     },
-    [updateDieValue, finishRoll, playCollision, rollTrigger]
+    [updateDieValue, finishRoll, playCollision, vibrateCollision, rollTrigger]
   );
 
   return (
