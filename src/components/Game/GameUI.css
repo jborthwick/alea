@@ -1,12 +1,22 @@
 /* Game UI Layout */
 .game-ui {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Use dvh for dynamic viewport height that accounts for mobile browser chrome */
+  height: 100dvh;
   pointer-events: none;
   display: flex;
   flex-direction: column;
   padding: 1rem;
+  /* Add safe area insets for iOS devices with notch/home indicator */
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
   font-family: 'Georgia', serif;
+  box-sizing: border-box;
 }
 
 .game-ui > * {
@@ -140,10 +150,25 @@
 @media (max-width: 768px) {
   .game-ui {
     padding: 0.75rem;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
   }
 
   .ui-top {
     flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .ui-center {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ui-bottom {
+    flex-shrink: 0;
   }
 
   .payout-container {
