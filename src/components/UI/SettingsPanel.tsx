@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGameStore } from '../../store/gameStore';
+import { useGameStore, useStoreHydrated } from '../../store/gameStore';
 import './SettingsPanel.css';
 
 interface SettingsPanelProps {
@@ -17,6 +17,7 @@ export function SettingsPanel({
   shakePermission,
   onRequestShakePermission,
 }: SettingsPanelProps) {
+  const hydrated = useStoreHydrated();
   const soundEnabled = useGameStore((state) => state.soundEnabled);
   const toggleSound = useGameStore((state) => state.toggleSound);
   const shakeEnabled = useGameStore((state) => state.shakeEnabled);
@@ -25,6 +26,10 @@ export function SettingsPanel({
 
   // Shake is only truly enabled if user wants it AND we have permission (or don't need it)
   const shakeActuallyEnabled = shakeEnabled && shakeSupported && shakePermission !== false;
+
+  // Don't show incorrect state while loading from localStorage
+  const showSoundEnabled = hydrated ? soundEnabled : false;
+  const showShakeEnabled = hydrated ? shakeActuallyEnabled : false;
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -63,9 +68,10 @@ export function SettingsPanel({
           <div className="settings-row">
             <span className="settings-label">Sound</span>
             <button
-              className={`settings-toggle ${soundEnabled ? 'active' : ''}`}
+              className={`settings-toggle ${showSoundEnabled ? 'active' : ''}`}
               onClick={toggleSound}
-              aria-label={soundEnabled ? 'Disable sound' : 'Enable sound'}
+              disabled={!hydrated}
+              aria-label={showSoundEnabled ? 'Disable sound' : 'Enable sound'}
             >
               <span className="toggle-track">
                 <span className="toggle-thumb" />
@@ -86,7 +92,7 @@ export function SettingsPanel({
                 )}
               </div>
               <button
-                className={`settings-toggle ${shakeActuallyEnabled ? 'active' : ''}`}
+                className={`settings-toggle ${showShakeEnabled ? 'active' : ''}`}
                 onClick={async () => {
                   if (!shakeEnabled) {
                     // Turning on - request permission if needed
@@ -99,7 +105,8 @@ export function SettingsPanel({
                     toggleShake();
                   }
                 }}
-                aria-label={shakeActuallyEnabled ? 'Disable shake to roll' : 'Enable shake to roll'}
+                disabled={!hydrated}
+                aria-label={showShakeEnabled ? 'Disable shake to roll' : 'Enable shake to roll'}
               >
                 <span className="toggle-track">
                   <span className="toggle-thumb" />
