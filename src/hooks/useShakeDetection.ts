@@ -40,6 +40,7 @@ export function useShakeDetection(
     const supported =
       typeof window !== 'undefined' && 'DeviceMotionEvent' in window;
     setIsSupported(supported);
+    console.log('[Shake] DeviceMotion supported:', supported);
 
     // Check if permission is already granted (non-iOS or already permitted)
     if (supported) {
@@ -48,9 +49,11 @@ export function useShakeDetection(
         typeof (DeviceMotionEvent as any).requestPermission === 'function'
       ) {
         // Permission state unknown until requested
+        console.log('[Shake] iOS detected, permission required');
         setHasPermission(null);
       } else {
         // Non-iOS, permission not required
+        console.log('[Shake] Non-iOS, permission not required');
         setHasPermission(true);
       }
     }
@@ -100,33 +103,44 @@ export function useShakeDetection(
 
   // Start/stop listening based on permission
   useEffect(() => {
-    if (!isSupported || hasPermission !== true) return;
+    if (!isSupported || hasPermission !== true) {
+      console.log('[Shake] Not starting listener - supported:', isSupported, 'permission:', hasPermission);
+      return;
+    }
 
+    console.log('[Shake] Starting devicemotion listener');
     window.addEventListener('devicemotion', handleMotion);
 
     return () => {
+      console.log('[Shake] Removing devicemotion listener');
       window.removeEventListener('devicemotion', handleMotion);
     };
   }, [isSupported, hasPermission, handleMotion]);
 
   // Request permission (needed for iOS 13+)
   const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (!isSupported) return false;
+    if (!isSupported) {
+      console.log('[Shake] Not supported');
+      return false;
+    }
 
     try {
       // Check if permission API exists (iOS 13+)
       if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+        console.log('[Shake] Requesting iOS permission...');
         const response = await (DeviceMotionEvent as any).requestPermission();
+        console.log('[Shake] Permission response:', response);
         const granted = response === 'granted';
         setHasPermission(granted);
         return granted;
       } else {
         // Non-iOS, no permission needed
+        console.log('[Shake] No permission needed (non-iOS)');
         setHasPermission(true);
         return true;
       }
     } catch (error) {
-      console.error('Error requesting motion permission:', error);
+      console.error('[Shake] Error requesting motion permission:', error);
       setHasPermission(false);
       return false;
     }

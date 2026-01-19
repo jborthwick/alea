@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { BettingControls } from '../UI/BettingControls';
 import { ChipDisplay } from '../UI/ChipDisplay';
@@ -25,25 +26,32 @@ export function GameUI({ onRoll }: GameUIProps) {
 
   const { playRoll, initAudio } = useAudio();
   const { vibrateRoll } = useHaptics();
-  const { isSupported: shakeSupported, hasPermission, requestPermission } = useShakeDetection({
-    onShake: (intensity) => {
-      if (canRoll) {
-        handleRoll(intensity);
-      }
-    },
-  });
 
   const canRoll =
     !isRolling &&
     rollsRemaining > 0 &&
     (gamePhase === 'betting' ? bankroll >= currentBet : true);
 
-  const handleRoll = (intensity?: number) => {
+  const handleRoll = useCallback((intensity?: number) => {
     initAudio();
     playRoll();
     vibrateRoll();
     onRoll(intensity);
-  };
+  }, [initAudio, playRoll, vibrateRoll, onRoll]);
+
+  // Use ref to always have access to current canRoll and handleRoll values
+  const canRollRef = useRef(canRoll);
+  canRollRef.current = canRoll;
+  const handleRollRef = useRef(handleRoll);
+  handleRollRef.current = handleRoll;
+
+  const { isSupported: shakeSupported, hasPermission, requestPermission } = useShakeDetection({
+    onShake: (intensity) => {
+      if (canRollRef.current) {
+        handleRollRef.current(intensity);
+      }
+    },
+  });
 
   const handleNewRound = () => {
     initAudio();
