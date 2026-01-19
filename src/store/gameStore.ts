@@ -37,7 +37,7 @@ export const useGameStore = create<GameState>()(
       currentHand: null,
       lastWin: 0,
       soundEnabled: true,
-      shakeEnabled: true,
+      shakeEnabled: false, // Starts off; user must enable each session (iOS doesn't persist permission)
 
       // Actions
       rollDice: () => {
@@ -184,7 +184,8 @@ export const useGameStore = create<GameState>()(
         bankroll: state.bankroll,
         currentBet: state.currentBet,
         soundEnabled: state.soundEnabled,
-        shakeEnabled: state.shakeEnabled,
+        // Note: shakeEnabled is intentionally NOT persisted because iOS Safari
+        // doesn't persist DeviceMotion permission across page reloads
       }),
     }
   )

@@ -84,9 +84,6 @@ export function SettingsPanel({
             <div className="settings-row">
               <div className="settings-label-group">
                 <span className="settings-label">Shake to Roll</span>
-                {shakePermission === null && shakeEnabled && (
-                  <span className="settings-label-hint">Tap toggle to activate</span>
-                )}
                 {shakePermission === false && (
                   <span className="settings-label-hint">Permission denied</span>
                 )}
@@ -94,17 +91,12 @@ export function SettingsPanel({
               <button
                 className={`settings-toggle ${showShakeEnabled ? 'active' : ''}`}
                 onClick={async () => {
-                  // On iOS, permission resets on page reload, so always try to get it
-                  // when enabling or re-enabling shake
-                  if (!shakeEnabled || shakePermission === null) {
-                    // Request permission if we don't have it yet
+                  if (!shakeEnabled) {
+                    // Turning on - request permission if needed (iOS requires this each session)
                     if (shakePermission === null) {
                       await onRequestShakePermission();
                     }
-                    // Only toggle on if not already enabled
-                    if (!shakeEnabled) {
-                      toggleShake();
-                    }
+                    toggleShake();
                   } else {
                     // Turning off
                     toggleShake();
