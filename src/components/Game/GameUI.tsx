@@ -36,8 +36,6 @@ export function GameUI({ onRoll }: GameUIProps) {
     rollsRemaining > 0 &&
     (gamePhase === 'betting' ? bankroll >= currentBet : true);
 
-  const canHold = gamePhase === 'rolling' && !isRolling && rollsRemaining < 3;
-
   const handleRoll = (intensity?: number) => {
     initAudio();
     playRoll();
@@ -83,13 +81,6 @@ export function GameUI({ onRoll }: GameUIProps) {
       <div className="ui-center">
         <HandResult />
       </div>
-
-      {/* Hint to click dice to hold */}
-      {canHold && (
-        <div className="hold-hint">
-          Click dice to hold
-        </div>
-      )}
 
       {/* Bottom bar */}
       <div className="ui-bottom">
