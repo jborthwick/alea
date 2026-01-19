@@ -42,8 +42,19 @@ export function DiceGroup({ rollTrigger, intensity = 0.7 }: DiceGroupProps) {
       // Only reset for dice that aren't held
       const heldIds = dice.filter((d) => d.isHeld).map((d) => d.id);
       settledDiceRef.current = new Set(heldIds);
+
+      // If all 5 dice are held, finish the roll immediately
+      if (heldIds.length === 5 && finishRollCalledForTrigger.current !== rollTrigger) {
+        const currentIsRolling = useGameStore.getState().isRolling;
+        if (currentIsRolling) {
+          finishRollCalledForTrigger.current = rollTrigger;
+          setTimeout(() => {
+            finishRoll();
+          }, 100);
+        }
+      }
     }
-  }, [rollTrigger, dice]);
+  }, [rollTrigger, dice, finishRoll]);
 
   const handleSettle = useCallback(
     (id: number, value: string) => {
