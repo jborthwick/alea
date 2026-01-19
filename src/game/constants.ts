@@ -53,8 +53,9 @@ export const LINEAR_DAMPING = 0.15;
 export const DICE_SIZE = 0.8;
 export const DICE_EDGE_RADIUS = 0.08;
 
-// Play area
-export const TABLE_SIZE = 6;
+// Play area (portrait orientation - taller than wide for mobile)
+export const TABLE_WIDTH = 5;   // X dimension (narrower)
+export const TABLE_DEPTH = 7;   // Z dimension (taller)
 export const WALL_HEIGHT = 0.6;  // Visible rail height
 export const CEILING_HEIGHT = 4; // Invisible ceiling to contain dice
 

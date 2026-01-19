@@ -1,6 +1,5 @@
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { OrbitControls } from '@react-three/drei';
 import { Suspense } from 'react';
 import { DiceGroup } from '../Dice/DiceGroup';
 import { PlaySurface } from '../Environment/PlaySurface';
@@ -19,8 +18,8 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
     <Canvas
       shadows
       camera={{
-        position: [0, 8, 6],
-        fov: 50,
+        position: [0, 12, 2],
+        fov: 45,
         near: 0.1,
         far: 100,
       }}
@@ -32,17 +31,6 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
           <PlaySurface />
           <DiceGroup rollTrigger={rollTrigger} intensity={intensity} />
         </Physics>
-
-        {/* Camera controls - limited for game view */}
-        <OrbitControls
-          enablePan={false}
-          enableZoom={true}
-          minDistance={5}
-          maxDistance={15}
-          minPolarAngle={Math.PI / 6}
-          maxPolarAngle={Math.PI / 2.5}
-          target={[0, 0, 0]}
-        />
       </Suspense>
     </Canvas>
   );

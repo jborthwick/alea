@@ -1,7 +1,7 @@
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useMemo } from 'react';
-import { TABLE_SIZE, WALL_HEIGHT, CEILING_HEIGHT } from '../../game/constants';
+import { TABLE_WIDTH, TABLE_DEPTH, WALL_HEIGHT, CEILING_HEIGHT } from '../../game/constants';
 
 // Create felt texture programmatically
 function createFeltTexture(): THREE.CanvasTexture {
@@ -71,7 +71,8 @@ export function PlaySurface() {
   const feltTexture = useMemo(() => createFeltTexture(), []);
   const woodTexture = useMemo(() => createWoodTexture(), []);
 
-  const halfSize = TABLE_SIZE / 2;
+  const halfWidth = TABLE_WIDTH / 2;
+  const halfDepth = TABLE_DEPTH / 2;
   const wallThickness = 0.3;
   const wallHalfThickness = wallThickness / 2;
 
@@ -79,9 +80,9 @@ export function PlaySurface() {
     <group>
       {/* Main felt surface */}
       <RigidBody type="fixed" position={[0, -0.1, 0]}>
-        <CuboidCollider args={[halfSize, 0.1, halfSize]} />
+        <CuboidCollider args={[halfWidth, 0.1, halfDepth]} />
         <mesh receiveShadow position={[0, 0, 0]}>
-          <boxGeometry args={[TABLE_SIZE, 0.2, TABLE_SIZE]} />
+          <boxGeometry args={[TABLE_WIDTH, 0.2, TABLE_DEPTH]} />
           <meshStandardMaterial
             map={feltTexture}
             roughness={0.9}
@@ -92,53 +93,53 @@ export function PlaySurface() {
 
       {/* Visible low wood rails */}
       {/* Back rail */}
-      <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, -halfSize - wallHalfThickness]}>
-        <boxGeometry args={[TABLE_SIZE + wallThickness * 2, WALL_HEIGHT, wallThickness]} />
+      <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, -halfDepth - wallHalfThickness]}>
+        <boxGeometry args={[TABLE_WIDTH + wallThickness * 2, WALL_HEIGHT, wallThickness]} />
         <meshStandardMaterial map={woodTexture} roughness={0.7} />
       </mesh>
 
       {/* Front rail */}
-      <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, halfSize + wallHalfThickness]}>
-        <boxGeometry args={[TABLE_SIZE + wallThickness * 2, WALL_HEIGHT, wallThickness]} />
+      <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, halfDepth + wallHalfThickness]}>
+        <boxGeometry args={[TABLE_WIDTH + wallThickness * 2, WALL_HEIGHT, wallThickness]} />
         <meshStandardMaterial map={woodTexture} roughness={0.7} />
       </mesh>
 
       {/* Left rail */}
-      <mesh castShadow receiveShadow position={[-halfSize - wallHalfThickness, WALL_HEIGHT / 2, 0]}>
-        <boxGeometry args={[wallThickness, WALL_HEIGHT, TABLE_SIZE]} />
+      <mesh castShadow receiveShadow position={[-halfWidth - wallHalfThickness, WALL_HEIGHT / 2, 0]}>
+        <boxGeometry args={[wallThickness, WALL_HEIGHT, TABLE_DEPTH]} />
         <meshStandardMaterial map={woodTexture} roughness={0.7} />
       </mesh>
 
       {/* Right rail */}
-      <mesh castShadow receiveShadow position={[halfSize + wallHalfThickness, WALL_HEIGHT / 2, 0]}>
-        <boxGeometry args={[wallThickness, WALL_HEIGHT, TABLE_SIZE]} />
+      <mesh castShadow receiveShadow position={[halfWidth + wallHalfThickness, WALL_HEIGHT / 2, 0]}>
+        <boxGeometry args={[wallThickness, WALL_HEIGHT, TABLE_DEPTH]} />
         <meshStandardMaterial map={woodTexture} roughness={0.7} />
       </mesh>
 
       {/* Invisible tall wall colliders to contain dice */}
       {/* Back wall collider */}
-      <RigidBody type="fixed" position={[0, CEILING_HEIGHT / 2, -halfSize - wallHalfThickness]}>
-        <CuboidCollider args={[halfSize + wallThickness, CEILING_HEIGHT / 2, wallHalfThickness]} />
+      <RigidBody type="fixed" position={[0, CEILING_HEIGHT / 2, -halfDepth - wallHalfThickness]}>
+        <CuboidCollider args={[halfWidth + wallThickness, CEILING_HEIGHT / 2, wallHalfThickness]} />
       </RigidBody>
 
       {/* Front wall collider */}
-      <RigidBody type="fixed" position={[0, CEILING_HEIGHT / 2, halfSize + wallHalfThickness]}>
-        <CuboidCollider args={[halfSize + wallThickness, CEILING_HEIGHT / 2, wallHalfThickness]} />
+      <RigidBody type="fixed" position={[0, CEILING_HEIGHT / 2, halfDepth + wallHalfThickness]}>
+        <CuboidCollider args={[halfWidth + wallThickness, CEILING_HEIGHT / 2, wallHalfThickness]} />
       </RigidBody>
 
       {/* Left wall collider */}
-      <RigidBody type="fixed" position={[-halfSize - wallHalfThickness, CEILING_HEIGHT / 2, 0]}>
-        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfSize]} />
+      <RigidBody type="fixed" position={[-halfWidth - wallHalfThickness, CEILING_HEIGHT / 2, 0]}>
+        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfDepth]} />
       </RigidBody>
 
       {/* Right wall collider */}
-      <RigidBody type="fixed" position={[halfSize + wallHalfThickness, CEILING_HEIGHT / 2, 0]}>
-        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfSize]} />
+      <RigidBody type="fixed" position={[halfWidth + wallHalfThickness, CEILING_HEIGHT / 2, 0]}>
+        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfDepth]} />
       </RigidBody>
 
       {/* Invisible ceiling collider */}
       <RigidBody type="fixed" position={[0, CEILING_HEIGHT, 0]}>
-        <CuboidCollider args={[halfSize + wallThickness, 0.1, halfSize + wallThickness]} />
+        <CuboidCollider args={[halfWidth + wallThickness, 0.1, halfDepth + wallThickness]} />
       </RigidBody>
     </group>
   );
