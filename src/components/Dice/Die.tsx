@@ -93,6 +93,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
 
     const linvel = rb.linvel();
     const angvel = rb.angvel();
+    const pos = rb.translation();
 
     const linearSpeed = Math.sqrt(
       linvel.x * linvel.x + linvel.y * linvel.y + linvel.z * linvel.z
@@ -100,6 +101,18 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     const angularSpeed = Math.sqrt(
       angvel.x * angvel.x + angvel.y * angvel.y + angvel.z * angvel.z
     );
+
+    // Detect if die is stacked on another (too high off the table)
+    // A die resting flat has center at ~DICE_SIZE/2 = 0.325
+    // If center is above DICE_SIZE (0.65), it's likely stacked
+    const maxValidHeight = DICE_SIZE * 1.2;
+    if (pos.y > maxValidHeight && linearSpeed < 1) {
+      // Apply a random horizontal nudge to knock it off
+      const nudgeX = (Math.random() - 0.5) * 3;
+      const nudgeZ = (Math.random() - 0.5) * 3;
+      rb.applyImpulse({ x: nudgeX, y: 0, z: nudgeZ }, true);
+      return; // Don't try to settle yet
+    }
 
     // When die is slow but not settled, apply corrective torque to snap to nearest face
     if (linearSpeed < 2 && angularSpeed < 3) {
@@ -142,8 +155,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
       }
     }
 
-    // Check if die has settled (very low velocity)
-    if (linearSpeed < 0.1 && angularSpeed < 0.1) {
+    // Check if die has settled (very low velocity and at valid height)
+    if (linearSpeed < 0.1 && angularSpeed < 0.1 && pos.y <= maxValidHeight) {
       const rotation = rb.rotation();
       const quaternion = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
       const faceValue = getFaceValue(quaternion);
