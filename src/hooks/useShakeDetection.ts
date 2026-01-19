@@ -17,6 +17,25 @@ const SHAKE_THRESHOLD = 20; // Acceleration threshold to detect shake
 const DEBOUNCE_MS = 500; // Minimum time between shake detections
 const SAMPLE_COUNT = 5; // Number of samples to average
 
+// Check if device is likely mobile/tablet with accelerometer
+function isMobileDevice(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return false;
+  }
+
+  // Check for touch capability as a primary indicator
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  // Check user agent for mobile devices
+  const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+
+  // Must have both touch AND mobile user agent to be considered mobile
+  // This filters out desktop Safari which has DeviceMotionEvent but no accelerometer
+  return hasTouch && mobileUA;
+}
+
 export function useShakeDetection(
   options: ShakeDetectionOptions = {}
 ): ShakeDetectionResult {
@@ -35,10 +54,12 @@ export function useShakeDetection(
   const onShakeRef = useRef(onShake);
   onShakeRef.current = onShake;
 
-  // Check if DeviceMotion is supported
+  // Check if DeviceMotion is supported on a mobile device
   useEffect(() => {
     const supported =
-      typeof window !== 'undefined' && 'DeviceMotionEvent' in window;
+      typeof window !== 'undefined' &&
+      'DeviceMotionEvent' in window &&
+      isMobileDevice();
     setIsSupported(supported);
 
     // Check if permission is already granted (non-iOS or already permitted)
