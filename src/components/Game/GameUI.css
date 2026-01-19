@@ -1,0 +1,179 @@
+/* Game UI Layout */
+.game-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  font-family: 'Georgia', serif;
+}
+
+.game-ui > * {
+  pointer-events: auto;
+}
+
+/* Top bar */
+.ui-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.sound-toggle {
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sound-toggle:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Center area */
+.ui-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ui-center > * {
+  pointer-events: auto;
+}
+
+/* Hold hint */
+.hold-hint {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: #D4AF37;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  pointer-events: none;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* Bottom bar */
+.ui-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.roll-button {
+  padding: 1rem 3rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #D4AF37 0%, #B8960C 100%);
+  color: #1a1a2e;
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+.roll-button:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+}
+
+.roll-button:active:not(.disabled) {
+  transform: translateY(0);
+}
+
+.roll-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shake-permission-button {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #D4AF37;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #D4AF37;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.shake-permission-button:hover {
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.shake-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+/* Payout table container */
+.payout-container {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  max-width: 180px;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .game-ui {
+    padding: 0.75rem;
+  }
+
+  .ui-top {
+    flex-wrap: wrap;
+  }
+
+  .payout-container {
+    display: none;
+  }
+
+  .roll-button {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+  }
+
+  .hold-hint {
+    font-size: 0.75rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 400px) {
+  .bet-amount {
+    font-size: 1.25rem;
+    min-width: 60px;
+  }
+
+  .bet-button {
+    width: 32px;
+    height: 32px;
+    font-size: 1.25rem;
+  }
+
+  .chip-amount {
+    font-size: 1.25rem;
+  }
+}

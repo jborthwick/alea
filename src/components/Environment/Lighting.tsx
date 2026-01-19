@@ -1,0 +1,72 @@
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
+
+interface LightingProps {
+  tiltX?: number;
+  tiltY?: number;
+}
+
+export function Lighting({ tiltX = 0, tiltY = 0 }: LightingProps) {
+  const directionalLightRef = useRef<THREE.DirectionalLight>(null);
+
+  // Animate light position based on device tilt (for mobile)
+  useFrame(() => {
+    if (directionalLightRef.current && (tiltX !== 0 || tiltY !== 0)) {
+      // Subtle light movement based on tilt
+      const baseX = 5;
+      const baseZ = 5;
+      directionalLightRef.current.position.x = baseX + tiltX * 2;
+      directionalLightRef.current.position.z = baseZ + tiltY * 2;
+    }
+  });
+
+  return (
+    <>
+      {/* Warm ambient light for casino atmosphere */}
+      <ambientLight intensity={0.4} color="#FFF5E6" />
+
+      {/* Main directional light with shadows */}
+      <directionalLight
+        ref={directionalLightRef}
+        position={[5, 10, 5]}
+        intensity={0.8}
+        color="#FFFAF0"
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+        shadow-bias={-0.0001}
+      />
+
+      {/* Fill light from the opposite side */}
+      <directionalLight
+        position={[-3, 8, -3]}
+        intensity={0.3}
+        color="#FFE4C4"
+      />
+
+      {/* Subtle rim light for depth */}
+      <pointLight
+        position={[0, 5, -5]}
+        intensity={0.2}
+        color="#FFF8DC"
+        distance={15}
+      />
+
+      {/* Warm spotlight from above for focused table lighting */}
+      <spotLight
+        position={[0, 8, 0]}
+        angle={Math.PI / 4}
+        penumbra={0.5}
+        intensity={0.5}
+        color="#FFFACD"
+        castShadow={false}
+      />
+    </>
+  );
+}

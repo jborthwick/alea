@@ -1,0 +1,27 @@
+import { PAYOUTS, HAND_NAMES } from '../../game/constants';
+import type { HandRank } from '../../types/game';
+import './UI.css';
+
+const HAND_ORDER: HandRank[] = [
+  'five-of-a-kind',
+  'four-of-a-kind',
+  'full-house',
+  'straight',
+  'three-of-a-kind',
+  'two-pair',
+  'one-pair',
+];
+
+export function PayoutTable() {
+  return (
+    <div className="payout-table">
+      <h3>Payouts</h3>
+      {HAND_ORDER.map((hand) => (
+        <div key={hand} className="payout-row">
+          <span className="payout-hand">{HAND_NAMES[hand].replace('!', '')}</span>
+          <span className="payout-value">{PAYOUTS[hand]}x</span>
+        </div>
+      ))}
+    </div>
+  );
+}

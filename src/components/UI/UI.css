@@ -1,0 +1,199 @@
+/* UI Components Styles - Classic Casino Theme */
+
+.betting-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bet-label,
+.chip-label,
+.roll-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #D4AF37;
+  text-transform: uppercase;
+}
+
+.bet-amount-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bet-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #D4AF37;
+  background: rgba(0, 0, 0, 0.4);
+  color: #D4AF37;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bet-button:hover:not(:disabled) {
+  background: #D4AF37;
+  color: #1a1a2e;
+}
+
+.bet-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.bet-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #FFFAF0;
+  min-width: 80px;
+  text-align: center;
+}
+
+.chip-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chip-amount {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #50C878;
+  text-shadow: 0 0 10px rgba(80, 200, 120, 0.3);
+}
+
+.roll-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roll-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.roll-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.roll-dot.available {
+  background: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+.roll-dot.used {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hand-result {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.hand-result.final {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.05);
+}
+
+.hand-result.win {
+  border: 2px solid #50C878;
+  box-shadow: 0 0 20px rgba(80, 200, 120, 0.3);
+}
+
+.hand-name {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #FFFAF0;
+  margin-bottom: 0.5rem;
+}
+
+.win-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.win-amount.positive {
+  color: #50C878;
+  text-shadow: 0 0 10px rgba(80, 200, 120, 0.5);
+}
+
+.win-amount.negative {
+  color: #CD5C5C;
+}
+
+.payout-multiplier {
+  font-size: 0.875rem;
+  color: #D4AF37;
+  margin-top: 0.25rem;
+}
+
+/* Payout Table */
+.payout-table {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.payout-table h3 {
+  color: #D4AF37;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.payout-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.payout-row:last-child {
+  border-bottom: none;
+}
+
+.payout-hand {
+  color: #FFFAF0;
+}
+
+.payout-value {
+  color: #D4AF37;
+  font-weight: bold;
+}
+
+/* Hold indicator for dice */
+.hold-indicator {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #D4AF37;
+  color: #1a1a2e;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
