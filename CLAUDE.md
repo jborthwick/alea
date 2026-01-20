@@ -70,11 +70,13 @@ npm run build    # Build for production
 npm run preview  # Preview production build
 ```
 
-**Mobile testing with HTTPS:**
+**Mobile testing on local network:**
 ```bash
-npm run dev -- --host --https
+npm run dev -- --host
 ```
-This exposes the server on your local network with a self-signed certificate. Access via your machine's IP address from a mobile device (accept the certificate warning). Required for testing shake detection and other DeviceMotion features.
+This exposes the server on your local network. Access via your machine's IP address from a mobile device.
+
+**Note:** Testing shake detection requires HTTPS. The deployed GitHub Pages site has HTTPS, so for shake testing you can either deploy or temporarily add `@vitejs/plugin-basic-ssl` to the Vite config.
 
 ## Deployment
 Deployed to GitHub Pages via GitHub Actions. The workflow in `.github/workflows/deploy.yml` builds and deploys on push to main.
