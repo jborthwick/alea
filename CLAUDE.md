@@ -65,10 +65,16 @@ src/
 
 ## Commands
 ```bash
-npm run dev      # Start development server
+npm run dev      # Start development server (http://localhost:5173)
 npm run build    # Build for production
 npm run preview  # Preview production build
 ```
+
+**Mobile testing with HTTPS:**
+```bash
+npm run dev -- --host --https
+```
+This exposes the server on your local network with a self-signed certificate. Access via your machine's IP address from a mobile device (accept the certificate warning). Required for testing shake detection and other DeviceMotion features.
 
 ## Deployment
 Deployed to GitHub Pages via GitHub Actions. The workflow in `.github/workflows/deploy.yml` builds and deploys on push to main.
@@ -78,6 +84,38 @@ Deployed to GitHub Pages via GitHub Actions. The workflow in `.github/workflows/
 - Click/tap dice to hold after first roll
 - Poker hands: 5-of-a-kind (100x) down to high card (0x)
 - Betting with virtual chips, bankroll persisted to localStorage
+
+## Working with the Codebase
+
+### Key Files to Read First
+- `src/store/gameStore.ts` - Central state management, all game actions live here
+- `src/game/constants.ts` - Physics tuning, table dimensions, timing values
+- `src/components/Dice/DiceGroup.tsx` - Orchestrates dice rolling and settlement detection
+
+### Common Modifications
+
+**Adjusting physics behavior:**
+Edit constants in `src/game/constants.ts`. Key values:
+- `IMPULSE_FORCE` / `TORQUE_FORCE` - How hard dice are thrown
+- `SETTLING_THRESHOLD` - Velocity below which dice are considered stopped
+- `CORRECTIVE_TORQUE_*` - Controls how dice "snap" to flat positions
+
+**Adding a new sound:**
+1. Add generation function in `src/hooks/useAudio.ts` (sounds are procedurally generated)
+2. Add to the `sounds` object returned by the hook
+3. Call via `sounds.yourSound.play()` from components
+
+**Modifying game state:**
+All state changes go through Zustand actions in `gameStore.ts`. Pattern:
+```typescript
+yourAction: () => set((state) => ({ ...changes }))
+```
+
+### Development Gotchas
+- **Roll completion logic:** The `finishRoll()` function uses refs to prevent double-firing. If modifying roll logic, ensure `hasFinishedRoll.current` is properly managed.
+- **Physics constants are interdependent:** Changing one value (e.g., impulse force) may require adjusting others (e.g., wall height, settling threshold).
+- **Always test on mobile:** Touch interactions, shake detection, and safe area insets behave differently than desktop.
+- **Held dice rendering:** Held dice skip physics entirely and render as static meshes at fixed positions. See `DiceGroup.tsx` for the bifurcated rendering logic.
 
 ## Known Quirks
 - Dice may need a moment to settle on first load
