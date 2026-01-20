@@ -14,8 +14,8 @@ export const VALUE_ORDER: Record<CardValue, number> = {
 export const PAYOUTS: Record<HandRank, number> = {
   'five-of-a-kind': 100,
   'four-of-a-kind': 25,
-  'full-house': 10,
-  'straight': 8,
+  'full-house': 8,
+  'straight': 10,
   'three-of-a-kind': 5,
   'two-pair': 3,
   'one-pair': 1,
