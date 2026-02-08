@@ -40,8 +40,10 @@ src/
 - `rollTrigger` counter increments to trigger new rolls
 - `finishRoll()` is guarded to only fire once per roll via refs
 - `isRolling` and `opponentIsRolling` states checked to prevent false roll completions
-- Held dice are excluded from physics and rendered as static meshes
-- Pre-roll dice display as static meshes with Ace face up near the bottom of the play area
+- Held dice are parked imperatively (z: -1.5) by `useFrame`, NOT unmounted
+- Pre-roll dice display at (z: 1.5) with Ace face up, parked by `useFrame`
+- Die.tsx uses `isPhysicsActive` ref to track when physics should run vs when to park
+- `settledRotation` ref preserves die orientation when held
 
 ### AI Opponent System
 - Player and AI opponent roll simultaneously across 3 shared rolls
@@ -73,6 +75,9 @@ src/
 - Safe area insets for iOS devices (notch, home indicator)
 - Dynamic viewport height (100dvh) for proper mobile browser chrome handling
 - Shake detection only shown on actual mobile devices (filters out desktop Safari)
+- Camera FOV: 50° on mobile, 45° on desktop (prevents dice cutoff)
+- Hand comparison modal: 32% padding-top on mobile vs 12% on desktop
+- Reduced dice momentum on mobile to prevent off-screen rolls
 
 ## Commands
 ```bash
@@ -112,9 +117,12 @@ Deployed to GitHub Pages via GitHub Actions. The workflow in `.github/workflows/
 
 **Adjusting physics behavior:**
 Edit constants in `src/game/constants.ts`. Key values:
-- `IMPULSE_FORCE` / `TORQUE_FORCE` - How hard dice are thrown
-- `SETTLING_THRESHOLD` - Velocity below which dice are considered stopped
-- `CORRECTIVE_TORQUE_*` - Controls how dice "snap" to flat positions
+- `BASE_IMPULSE` - Base force for dice throws (currently 22)
+- `MIN/MAX_ANGULAR_VELOCITY` - Spin speed range (30-55)
+- Roll momentum tuning in `impulseCalculator.ts` lines 45-47:
+  - X spread: `baseImpulse * 0.5` (horizontal)
+  - Y impulse: `baseImpulse * 0.35` (upward arc)
+  - Z momentum: `baseImpulse * (0.2-0.5)` (forward/toward camera)
 
 **Adjusting opponent dice layout:**
 Edit constants in `src/game/constants.ts`:
@@ -133,13 +141,19 @@ All state changes go through Zustand actions in `gameStore.ts`. Pattern:
 yourAction: () => set((state) => ({ ...changes }))
 ```
 
+**CRITICAL when modifying dice array:** Use `.map()` to reset dice values/holds on existing objects. NEVER use `createInitialDice()` during gameplay as it recreates the array and causes React to unmount/remount Die components (triggering Rapier crashes). See `newRound()` and `resetBankroll()` in gameStore.ts for correct pattern.
+
 ### Development Gotchas
+- **CRITICAL - RigidBody lifecycle:** Die components use always-mounted `<RigidBody>` that NEVER unmounts during gameplay. The `useFrame` hook parks dice imperatively by setting position/rotation when not physics-active. NEVER use conditional rendering that unmounts RigidBody (causes Rapier WASM null pointer errors). See Die.tsx:68-72 for held position constants, Die.tsx:115-129 for parking logic.
 - **Roll completion logic:** The `finishRoll()` function uses refs to prevent double-firing. If modifying roll logic, ensure `finishRollCalledForTrigger` ref is properly managed.
 - **Opponent resolution timing:** `finishRoll()` sets `opponentIsRolling: true`, then uses a 500ms `setTimeout` to resolve. Both `isRolling` and `opponentIsRolling` must be checked when guarding against premature rolls (in both `GameUI.tsx` and the store's `rollDice` action).
 - **Physics constants are interdependent:** Changing one value (e.g., impulse force) may require adjusting others (e.g., wall height, settling threshold).
 - **Always test on mobile:** Touch interactions, shake detection, and safe area insets behave differently than desktop.
-- **Held dice rendering:** Held dice skip physics entirely and render as static meshes at fixed positions. See `Die.tsx` for the bifurcated rendering logic (pre-roll static, held static, or physics-driven).
+- **Held dice rendering:** Held dice skip physics entirely - positioned imperatively in useFrame (z: -1.5 for held, z: 1.5 for pre-roll). The RigidBody stays mounted but velocities are zeroed and position/rotation set directly.
 - **Opponent dice are purely visual:** They use `useFrame` for spin animation and quaternion snapping — no physics involved. See `OpponentDice.tsx`.
+- **Hand comparison modal positioning:** Modal sits between opponent dice (top) and player held dice. Desktop: 12% padding-top, Mobile: 32% padding-top. Opponent hand name smaller (1rem), player hand name larger (1.5rem), displayed vertically with opponent above.
+- **Mobile FOV adjustment:** Camera FOV is wider on mobile (50°) vs desktop (45°) to prevent dice cutoff on narrow screens. Check `GameCanvas.tsx` line 19-20.
+- **Dice roll momentum:** X spread and Z momentum have been reduced in impulseCalculator.ts (0.5x and 0.2-0.5x respectively) to prevent dice flying off-screen on mobile.
 
 ## Known Quirks
 - Dice may need a moment to settle on first load
