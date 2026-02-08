@@ -28,7 +28,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
         near: 0.1,
         far: 100,
       }}
-      style={{ background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)' }}
+      style={{ background: 'rgb(48, 48, 46)' }}
     >
       <Suspense fallback={null}>
         <Physics gravity={[0, GRAVITY, 0]} timeStep="vary">

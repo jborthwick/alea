@@ -15,7 +15,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: linear-gradient(180deg, #2a2a4a 0%, #1a1a2e 100%);
+  background: rgb(60, 60, 58);
   border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
@@ -159,7 +159,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: linear-gradient(180deg, #2a2a4a 0%, #1a1a2e 100%);
+  background: rgb(60, 60, 58);
   border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 12px;
   padding: 1.5rem;

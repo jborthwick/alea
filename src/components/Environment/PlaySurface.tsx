@@ -6,23 +6,34 @@ import { TABLE_WIDTH, TABLE_DEPTH, CEILING_HEIGHT, PLAY_AREA_DEPTH } from '../..
 // Create felt texture programmatically
 function createFeltTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
+  canvas.width = 256;
+  canvas.height = 256;
   const ctx = canvas.getContext('2d')!;
 
   // Base green felt color
-  ctx.fillStyle = '#0d5c0d';
-  ctx.fillRect(0, 0, 512, 512);
+  ctx.fillStyle = '#1a8c1a';
+  ctx.fillRect(0, 0, 256, 256);
 
-  // Add subtle noise for felt texture
-  const imageData = ctx.getImageData(0, 0, 512, 512);
+  // Add felt texture with directional fibers - optimized
+  const imageData = ctx.getImageData(0, 0, 256, 256);
   const data = imageData.data;
 
+  // Pre-calculate random values for better performance
   for (let i = 0; i < data.length; i += 4) {
-    const noise = (Math.random() - 0.5) * 15;
-    data[i] = Math.max(0, Math.min(255, data[i] + noise));
-    data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
-    data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+    const x = (i / 4) % 256;
+    const y = Math.floor((i / 4) / 256);
+
+    // Random noise
+    const noise = (Math.random() - 0.5) * 40;
+
+    // Directional fiber pattern (subtle diagonal lines) - tighter/smaller fibers
+    const fiber = Math.sin(x * 0.4 + y * 0.2) * 8;
+
+    const variation = noise + fiber;
+
+    data[i] = Math.max(0, Math.min(255, data[i] + variation));
+    data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + variation));
+    data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + variation));
   }
 
   ctx.putImageData(imageData, 0, 0);
