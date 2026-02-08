@@ -121,7 +121,7 @@
   font-size: 1.25rem;
   font-weight: bold;
   color: #FFFAF0;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .win-amount {
@@ -152,13 +152,31 @@
 }
 
 /* Hand comparison layout (during scoring) */
+.hand-comparison-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  margin-bottom: 0.4rem;
+}
+
 .hand-comparison {
   text-align: center;
-  margin: 0.15rem 0;
 }
 
 .hand-comparison .hand-name {
-  margin-bottom: 0.15rem;
+  margin: 0;
+}
+
+/* Opponent hand smaller */
+.hand-comparison.opponent .hand-name {
+  font-size: 1rem;
+}
+
+/* Player hand bigger (keep default 1.25rem from .hand-name) */
+.hand-comparison.player .hand-name {
+  font-size: 1.5rem;
 }
 
 .hand-label {

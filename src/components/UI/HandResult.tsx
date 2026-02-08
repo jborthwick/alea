@@ -38,12 +38,12 @@ export function HandResult() {
   if (gamePhase === 'rolling') {
     return (
       <div className="hand-result">
-        <div className="hand-name">{currentHand.displayName}</div>
         {opponentHand && (
           <div className="opponent-hand-preview">
-            vs. {opponentHand.displayName}
+            {opponentHand.displayName} vs.
           </div>
         )}
+        <div className="hand-name">{currentHand.displayName}</div>
       </div>
     );
   }
@@ -54,14 +54,14 @@ export function HandResult() {
 
     return (
       <div className={`hand-result final ${outcomeClass}`}>
-        <div className="hand-comparison">
-          <div className="hand-label">YOU</div>
-          <div className="hand-name">{currentHand.displayName}</div>
-        </div>
-        <div className="vs-divider">vs</div>
-        <div className="hand-comparison">
-          <div className="hand-label">OPPONENT</div>
-          <div className="hand-name">{opponentHand?.displayName}</div>
+        <div className="hand-comparison-row">
+          <div className="hand-comparison opponent">
+            <div className="hand-name">{opponentHand?.displayName}</div>
+          </div>
+          <div className="vs-divider">vs</div>
+          <div className="hand-comparison player">
+            <div className="hand-name">{currentHand.displayName}</div>
+          </div>
         </div>
         <div className={`outcome-text ${outcomeClass}`}>
           {roundOutcome === 'win' ? 'YOU WIN!' : roundOutcome === 'lose' ? 'YOU LOSE' : 'PUSH'}
