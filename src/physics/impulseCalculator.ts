@@ -42,9 +42,9 @@ export function calculateRollImpulse(
 
   // Throw dice with good horizontal spread and forward momentum
   const linearImpulse = new Vector3(
-    (Math.random() - 0.5) * baseImpulse * 0.7,  // X spread
+    (Math.random() - 0.5) * baseImpulse * 0.5,  // Reduced X spread for mobile
     baseImpulse * 0.35,                          // Good upward arc for bounces
-    (Math.random() * 0.4 + 0.4) * baseImpulse   // Forward Z momentum
+    (Math.random() * 0.3 + 0.2) * baseImpulse   // Reduced forward Z momentum for mobile
   ).multiplyScalar(variance);
 
   // Start position: spread across the table, above the surface

@@ -15,12 +15,16 @@ interface GameCanvasProps {
 }
 
 export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasProps) {
+  // Use wider FOV on mobile to prevent dice cutoff
+  const isMobile = window.innerWidth <= 768;
+  const fov = isMobile ? 50 : 45;
+
   return (
     <Canvas
       shadows
       camera={{
         position: [0, 12, 2],
-        fov: 45,
+        fov,
         near: 0.1,
         far: 100,
       }}
