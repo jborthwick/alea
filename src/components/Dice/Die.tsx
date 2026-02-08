@@ -17,6 +17,9 @@ interface DieProps {
   onHold: (id: number) => void;
 }
 
+// Ace face up: -Y axis points up, so rotate PI on X
+const ACE_UP_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0));
+
 export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHold }: DieProps) {
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const meshRef = useRef<THREE.Mesh>(null);
@@ -26,17 +29,13 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Store the rotation when die settles so held dice keep their orientation
   const settledRotation = useRef<THREE.Quaternion>(new THREE.Quaternion());
 
+  // Track whether dice are actively rolling (cleared by roll trigger, set false by settle)
+  const isPhysicsActive = useRef(false);
+
   const dice = useGameStore((state) => state.dice);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const die = dice.find((d) => d.id === id);
   const isHeld = die?.isHeld ?? false;
-  const hasEverRolled = useRef(false);
-  if (gamePhase === 'rolling' || gamePhase === 'scoring') {
-    hasEverRolled.current = true;
-  }
-  if (gamePhase === 'betting') {
-    hasEverRolled.current = false;
-  }
 
   // Handle click on die
   const handleClick = () => {
@@ -58,18 +57,36 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     Math.random() * Math.PI * 2,
   ], []);
 
+  // Pre-roll resting position near bottom of play area
+  const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({
+    x: (id - 2) * 0.9,
+    y: DICE_SIZE / 2,
+    z: 1.5,
+  }), [id]);
+
+  // For held dice, use a static position
+  const heldPosition = useMemo((): { x: number; y: number; z: number } => ({
+    x: (id - 2) * 0.9,
+    y: 0.5,
+    z: -2.8,
+  }), [id]);
+
   // Handle roll trigger
   useEffect(() => {
     if (rollTrigger !== lastRollTrigger.current && !isHeld) {
       lastRollTrigger.current = rollTrigger;
       setIsSettled(false);
+      isPhysicsActive.current = true;
 
       const rb = rigidBodyRef.current;
       if (rb) {
+        // Wake up the body first
+        rb.wakeUp();
+
         // Calculate impulse for this roll
         const impulse = calculateRollImpulse(intensity, id);
 
-        // Reset position and wake up the body
+        // Reset position
         rb.setTranslation(
           { x: impulse.startPosition.x, y: impulse.startPosition.y, z: impulse.startPosition.z },
           true
@@ -94,10 +111,27 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     }
   }, [rollTrigger, isHeld, id, intensity]);
 
-  // Check for settling and apply corrective torque
+  // Main frame loop: handles parking and physics settling
   useFrame(() => {
     const rb = rigidBodyRef.current;
-    if (!rb || isSettled || isHeld) return;
+    if (!rb) return;
+
+    // Determine if we should park this frame (computed inline, no effect delay)
+    const shouldPark = gamePhase === 'betting' || (isHeld && !isPhysicsActive.current);
+
+    if (shouldPark) {
+      const pos = gamePhase === 'betting' ? preRollPosition : heldPosition;
+      const quat = gamePhase === 'betting' ? ACE_UP_QUAT : settledRotation.current;
+      rb.setTranslation(pos, true);
+      rb.setRotation({ x: quat.x, y: quat.y, z: quat.z, w: quat.w }, true);
+      rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      isPhysicsActive.current = false;
+      return;
+    }
+
+    // Skip physics checks if already settled
+    if (isSettled || isHeld) return;
 
     const linvel = rb.linvel();
     const angvel = rb.angvel();
@@ -111,15 +145,12 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     );
 
     // Detect if die is stacked on another (too high off the table)
-    // A die resting flat has center at ~DICE_SIZE/2 = 0.325
-    // If center is above DICE_SIZE (0.65), it's likely stacked
     const maxValidHeight = DICE_SIZE * 1.2;
     if (pos.y > maxValidHeight && linearSpeed < 1) {
-      // Apply a random horizontal nudge to knock it off
       const nudgeX = (Math.random() - 0.5) * 3;
       const nudgeZ = (Math.random() - 0.5) * 3;
       rb.applyImpulse({ x: nudgeX, y: 0, z: nudgeZ }, true);
-      return; // Don't try to settle yet
+      return;
     }
 
     // When die is slow but not settled, apply corrective torque to snap to nearest face
@@ -127,11 +158,9 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
       const rotation = rb.rotation();
       const quaternion = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
 
-      // Find the up vector in local space
       const upWorld = new THREE.Vector3(0, 1, 0);
       const upLocal = upWorld.clone().applyQuaternion(quaternion.clone().invert());
 
-      // Find which face axis is closest to pointing up
       const axes = [
         new THREE.Vector3(1, 0, 0),
         new THREE.Vector3(-1, 0, 0),
@@ -151,40 +180,28 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
         }
       }
 
-      // If not already aligned (dot < 0.99), apply corrective torque
       if (bestDot < 0.99) {
-        // Calculate the torque needed to align bestAxis with up
         const cross = new THREE.Vector3().crossVectors(bestAxis, upLocal);
-        const torqueStrength = (1 - bestDot) * 2; // Stronger when more misaligned
-
-        // Transform torque to world space and apply
+        const torqueStrength = (1 - bestDot) * 2;
         const torqueWorld = cross.applyQuaternion(quaternion).multiplyScalar(torqueStrength);
         rb.applyTorqueImpulse({ x: torqueWorld.x, y: torqueWorld.y, z: torqueWorld.z }, true);
       }
     }
 
-    // Check if die has settled (very low velocity and at valid height)
+    // Check if die has settled
     if (linearSpeed < 0.1 && angularSpeed < 0.1 && pos.y <= maxValidHeight) {
       const rotation = rb.rotation();
       const quaternion = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
       const faceValue = getFaceValue(quaternion);
 
-      // Save the rotation so held dice maintain their orientation
       settledRotation.current.copy(quaternion);
-
+      isPhysicsActive.current = false;
       setIsSettled(true);
       onSettle(id, faceValue);
     }
   });
 
-  // For held dice, use a static position
-  const heldPosition: [number, number, number] = [(id - 2) * 0.9, 0.5, -2.8];
   const initialPosition: [number, number, number] = [(id - 2) * 0.9, 2.5, 0];
-  // Pre-roll resting position near bottom of play area
-  const preRollPosition: [number, number, number] = [(id - 2) * 0.9, DICE_SIZE / 2, 1.5];
-  // Ace face up: -Y axis points up, so rotate PI on X
-  const aceUpQuaternion = useMemo(() =>
-    new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0)), []);
 
   // Common mesh props for interactivity
   const interactiveProps = canHold
@@ -199,38 +216,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Scale up slightly when hovered and can hold
   const hoverScale = canHold && isHovered ? 1.08 : 1;
 
-  // Before any roll has happened, show static dice near bottom of play area
-  if (!hasEverRolled.current) {
-    return (
-      <mesh
-        ref={meshRef}
-        position={preRollPosition}
-        quaternion={aceUpQuaternion}
-        geometry={geometry}
-        material={materials}
-        castShadow
-        receiveShadow
-      />
-    );
-  }
-
-  if (isHeld) {
-    // Render held die without physics (static), preserving its rotation
-    return (
-      <mesh
-        ref={meshRef}
-        position={heldPosition}
-        quaternion={settledRotation.current}
-        scale={hoverScale}
-        geometry={geometry}
-        material={materials}
-        castShadow
-        receiveShadow
-        {...interactiveProps}
-      />
-    );
-  }
-
+  // Always render the RigidBody — never unmount it
   return (
     <RigidBody
       ref={rigidBodyRef}

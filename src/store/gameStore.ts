@@ -192,9 +192,20 @@ export const useGameStore = create<GameState>()(
       newRound: () => {
         const state = get();
 
-        // Reset dice but keep bankroll
+        // Reset dice values in place (avoids destroying/recreating Rapier physics bodies)
+        const resetDice = state.dice.map((d) => ({
+          ...d,
+          value: 'A' as CardValue,
+          isHeld: false,
+        }));
+        const resetOpponentDice = state.opponentDice.map((d) => ({
+          ...d,
+          value: 'A' as CardValue,
+          isHeld: false,
+        }));
+
         set({
-          dice: createInitialDice(),
+          dice: resetDice,
           rollsRemaining: 3,
           isRolling: false,
           gamePhase: 'betting',
@@ -203,7 +214,7 @@ export const useGameStore = create<GameState>()(
           // Adjust bet if bankroll is too low
           currentBet: Math.min(state.currentBet, state.bankroll, state.maxBet),
           // Reset opponent state
-          opponentDice: createInitialOpponentDice(),
+          opponentDice: resetOpponentDice,
           pendingOpponentDice: null,
           opponentHand: null,
           opponentIsRolling: false,
@@ -220,8 +231,20 @@ export const useGameStore = create<GameState>()(
       },
 
       resetBankroll: () => {
+        const state = get();
+        const resetDice = state.dice.map((d) => ({
+          ...d,
+          value: 'A' as CardValue,
+          isHeld: false,
+        }));
+        const resetOpponentDice = state.opponentDice.map((d) => ({
+          ...d,
+          value: 'A' as CardValue,
+          isHeld: false,
+        }));
+
         set({
-          dice: createInitialDice(),
+          dice: resetDice,
           rollsRemaining: 3,
           isRolling: false,
           bankroll: INITIAL_BANKROLL,
@@ -229,7 +252,7 @@ export const useGameStore = create<GameState>()(
           gamePhase: 'betting',
           currentHand: null,
           lastWin: 0,
-          opponentDice: createInitialOpponentDice(),
+          opponentDice: resetOpponentDice,
           pendingOpponentDice: null,
           opponentHand: null,
           opponentIsRolling: false,
