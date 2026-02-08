@@ -69,3 +69,21 @@ export const MIN_ANGULAR_VELOCITY = 30;
 export const MAX_ANGULAR_VELOCITY = 55;
 export const BASE_IMPULSE = 22;
 export const IMPULSE_VARIANCE = 0.35;
+
+// Hand rank numeric values for comparison (higher = better)
+export const HAND_RANK_VALUES: Record<HandRank, number> = {
+  'five-of-a-kind': 8,
+  'four-of-a-kind': 7,
+  'full-house': 6,
+  'straight': 5,
+  'three-of-a-kind': 4,
+  'two-pair': 3,
+  'one-pair': 2,
+  'high-card': 1,
+};
+
+// Opponent dice layout
+export const OPPONENT_DICE_SIZE = 0.45;
+export const OPPONENT_DICE_Y = 0.3;
+export const OPPONENT_DICE_Z = -4.3;
+export const OPPONENT_DICE_SPACING = 0.7;

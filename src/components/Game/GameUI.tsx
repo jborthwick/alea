@@ -29,8 +29,11 @@ export function GameUI({ onRoll }: GameUIProps) {
   const { playRoll, initAudio } = useAudio();
   const { vibrateRoll } = useHaptics();
 
+  const opponentIsRolling = useGameStore((state) => state.opponentIsRolling);
+
   const canRoll =
     !isRolling &&
+    !opponentIsRolling &&
     rollsRemaining > 0 &&
     (gamePhase === 'betting' ? bankroll >= currentBet : true);
 
@@ -82,7 +85,6 @@ export function GameUI({ onRoll }: GameUIProps) {
       {/* Top bar */}
       <div className="ui-top">
         <ChipDisplay />
-        <RollCounter />
         <button
           className="settings-button"
           onClick={() => setSettingsOpen(true)}
@@ -126,6 +128,7 @@ export function GameUI({ onRoll }: GameUIProps) {
           {buttonText}
         </button>
 
+        <RollCounter />
       </div>
 
       {/* Payout table (collapsible on mobile) */}

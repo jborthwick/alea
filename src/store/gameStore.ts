@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Vector3, Quaternion } from 'three';
-import type { GameState, DieState, CardValue } from '../types/game';
+import type { GameState, DieState, CardValue, OpponentDieState } from '../types/game';
 import { CARD_VALUES } from '../types/game';
-import { evaluateHand } from '../game/handEvaluator';
+import { evaluateHand, compareHands } from '../game/handEvaluator';
+import { decideHolds, rollOpponentValues } from '../game/opponentAI';
 import {
   INITIAL_BANKROLL,
   MIN_BET,
@@ -15,10 +16,18 @@ import {
 function createInitialDice(): DieState[] {
   return Array.from({ length: 5 }, (_, i) => ({
     id: i,
-    value: CARD_VALUES[Math.floor(Math.random() * CARD_VALUES.length)],
+    value: 'A' as CardValue,
     isHeld: false,
     position: new Vector3((i - 2) * 1.2, 3, 0),
     rotation: new Quaternion(),
+  }));
+}
+
+function createInitialOpponentDice(): OpponentDieState[] {
+  return Array.from({ length: 5 }, (_, i) => ({
+    id: i,
+    value: 'A' as CardValue,
+    isHeld: false,
   }));
 }
 
@@ -39,12 +48,18 @@ export const useGameStore = create<GameState>()(
       soundEnabled: true,
       shakeEnabled: false, // Starts off; user must enable each session (iOS doesn't persist permission)
 
+      // Opponent state
+      opponentDice: createInitialOpponentDice(),
+      opponentHand: null,
+      opponentIsRolling: false,
+      roundOutcome: null,
+
       // Actions
       rollDice: () => {
         const state = get();
 
-        // Can't roll if already rolling or no rolls left
-        if (state.isRolling || state.rollsRemaining <= 0) return;
+        // Can't roll if already rolling, opponent is resolving, or no rolls left
+        if (state.isRolling || state.opponentIsRolling || state.rollsRemaining <= 0) return;
 
         // If in betting phase, deduct bet and move to rolling phase
         if (state.gamePhase === 'betting') {
@@ -53,11 +68,17 @@ export const useGameStore = create<GameState>()(
             bankroll: state.bankroll - state.currentBet,
             gamePhase: 'rolling',
             currentHand: null,
+            opponentHand: null,
             lastWin: 0,
+            roundOutcome: null,
           });
         }
 
-        set({ isRolling: true });
+        // Pre-determine opponent's new dice values (revealed after player dice settle)
+        const currentState = get();
+        const newOpponentDice = rollOpponentValues(currentState.opponentDice);
+
+        set({ isRolling: true, opponentDice: newOpponentDice });
       },
 
       setRolling: (rolling: boolean) => {
@@ -68,28 +89,49 @@ export const useGameStore = create<GameState>()(
         const state = get();
         const newRollsRemaining = state.rollsRemaining - 1;
 
-        // Evaluate hand
-        const values = state.dice.map((d) => d.value);
-        const handResult = evaluateHand(values);
+        // Evaluate player hand immediately
+        const playerValues = state.dice.map((d) => d.value);
+        const playerHandResult = evaluateHand(playerValues);
 
-        // If no rolls left, score the hand
-        if (newRollsRemaining === 0) {
-          const winnings = state.currentBet * handResult.payout;
-          set({
-            rollsRemaining: 0,
-            isRolling: false,
-            gamePhase: 'scoring',
-            currentHand: handResult,
-            bankroll: state.bankroll + winnings,
-            lastWin: winnings,
-          });
-        } else {
-          set({
-            rollsRemaining: newRollsRemaining,
-            isRolling: false,
-            currentHand: handResult,
-          });
-        }
+        // Player dice are done; start opponent spin after a brief pause
+        set({ isRolling: false, currentHand: playerHandResult, opponentIsRolling: true });
+
+        // After 500ms, stop opponent spin and resolve
+        setTimeout(() => {
+          const s = get();
+          const opponentValues = s.opponentDice.map((d) => d.value);
+          const opponentHandResult = evaluateHand(opponentValues);
+
+          if (newRollsRemaining === 0) {
+            const outcome = compareHands(playerValues, opponentValues);
+            let winnings = 0;
+            if (outcome === 'win') winnings = s.currentBet * 2;
+            else if (outcome === 'tie') winnings = s.currentBet;
+
+            set({
+              rollsRemaining: 0,
+              opponentIsRolling: false,
+              gamePhase: 'scoring',
+              opponentHand: opponentHandResult,
+              roundOutcome: outcome,
+              bankroll: s.bankroll + winnings,
+              lastWin: outcome === 'win' ? winnings : 0,
+            });
+          } else {
+            const aiHolds = decideHolds(s.opponentDice);
+            const updatedOpponentDice = s.opponentDice.map((d, i) => ({
+              ...d,
+              isHeld: aiHolds[i],
+            }));
+
+            set({
+              rollsRemaining: newRollsRemaining,
+              opponentIsRolling: false,
+              opponentHand: opponentHandResult,
+              opponentDice: updatedOpponentDice,
+            });
+          }
+        }, 500);
       },
 
       toggleHold: (id: number) => {
@@ -154,6 +196,11 @@ export const useGameStore = create<GameState>()(
           lastWin: 0,
           // Adjust bet if bankroll is too low
           currentBet: Math.min(state.currentBet, state.bankroll, state.maxBet),
+          // Reset opponent state
+          opponentDice: createInitialOpponentDice(),
+          opponentHand: null,
+          opponentIsRolling: false,
+          roundOutcome: null,
         });
       },
 
@@ -175,6 +222,10 @@ export const useGameStore = create<GameState>()(
           gamePhase: 'betting',
           currentHand: null,
           lastWin: 0,
+          opponentDice: createInitialOpponentDice(),
+          opponentHand: null,
+          opponentIsRolling: false,
+          roundOutcome: null,
         });
       },
     }),

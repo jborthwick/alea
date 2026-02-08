@@ -27,8 +27,16 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   const settledRotation = useRef<THREE.Quaternion>(new THREE.Quaternion());
 
   const dice = useGameStore((state) => state.dice);
+  const gamePhase = useGameStore((state) => state.gamePhase);
   const die = dice.find((d) => d.id === id);
   const isHeld = die?.isHeld ?? false;
+  const hasEverRolled = useRef(false);
+  if (gamePhase === 'rolling' || gamePhase === 'scoring') {
+    hasEverRolled.current = true;
+  }
+  if (gamePhase === 'betting') {
+    hasEverRolled.current = false;
+  }
 
   // Handle click on die
   const handleClick = () => {
@@ -172,6 +180,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // For held dice, use a static position
   const heldPosition: [number, number, number] = [(id - 2) * 0.9, 0.5, -2.8];
   const initialPosition: [number, number, number] = [(id - 2) * 0.9, 2.5, 0];
+  // Pre-roll resting position near bottom of play area
+  const preRollPosition: [number, number, number] = [(id - 2) * 0.9, DICE_SIZE / 2, 1.5];
+  // Ace face up: -Y axis points up, so rotate PI on X
+  const aceUpQuaternion = useMemo(() =>
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0)), []);
 
   // Common mesh props for interactivity
   const interactiveProps = canHold
@@ -185,6 +198,21 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
 
   // Scale up slightly when hovered and can hold
   const hoverScale = canHold && isHovered ? 1.08 : 1;
+
+  // Before any roll has happened, show static dice near bottom of play area
+  if (!hasEverRolled.current) {
+    return (
+      <mesh
+        ref={meshRef}
+        position={preRollPosition}
+        quaternion={aceUpQuaternion}
+        geometry={geometry}
+        material={materials}
+        castShadow
+        receiveShadow
+      />
+    );
+  }
 
   if (isHeld) {
     // Render held die without physics (static), preserving its rotation

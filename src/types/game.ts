@@ -12,6 +12,12 @@ export interface DieState {
   rotation: Quaternion;
 }
 
+export interface OpponentDieState {
+  id: number;
+  value: CardValue;
+  isHeld: boolean;
+}
+
 export type HandRank =
   | 'five-of-a-kind'
   | 'four-of-a-kind'
@@ -30,11 +36,19 @@ export interface HandResult {
 
 export type GamePhase = 'betting' | 'rolling' | 'scoring';
 
+export type RoundOutcome = 'win' | 'lose' | 'tie';
+
 export interface GameState {
-  // Dice
+  // Player dice
   dice: DieState[];
   rollsRemaining: number;
   isRolling: boolean;
+
+  // Opponent dice
+  opponentDice: OpponentDieState[];
+  opponentHand: HandResult | null;
+  opponentIsRolling: boolean;
+  roundOutcome: RoundOutcome | null;
 
   // Betting
   bankroll: number;

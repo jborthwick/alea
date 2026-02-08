@@ -6,8 +6,11 @@ import './UI.css';
 
 export function HandResult() {
   const currentHand = useGameStore((state) => state.currentHand);
+  const opponentHand = useGameStore((state) => state.opponentHand);
   const lastWin = useGameStore((state) => state.lastWin);
   const gamePhase = useGameStore((state) => state.gamePhase);
+  const roundOutcome = useGameStore((state) => state.roundOutcome);
+  const currentBet = useGameStore((state) => state.currentBet);
   const { playWin, playLose } = useAudio();
   const { vibrateWin, vibrateLose } = useHaptics();
   const hasPlayedSound = useRef(false);
@@ -15,7 +18,7 @@ export function HandResult() {
   useEffect(() => {
     if (gamePhase === 'scoring' && !hasPlayedSound.current) {
       hasPlayedSound.current = true;
-      if (lastWin > 0) {
+      if (roundOutcome === 'win') {
         playWin();
         vibrateWin();
       } else {
@@ -27,23 +30,54 @@ export function HandResult() {
     if (gamePhase !== 'scoring') {
       hasPlayedSound.current = false;
     }
-  }, [gamePhase, lastWin, playWin, playLose, vibrateWin, vibrateLose]);
+  }, [gamePhase, roundOutcome, playWin, playLose, vibrateWin, vibrateLose]);
 
   if (!currentHand) return null;
 
-  const isWin = lastWin > 0;
+  // During rolling phase: show both developing hands
+  if (gamePhase === 'rolling') {
+    return (
+      <div className="hand-result">
+        <div className="hand-name">{currentHand.displayName}</div>
+        {opponentHand && (
+          <div className="opponent-hand-preview">
+            vs. {opponentHand.displayName}
+          </div>
+        )}
+      </div>
+    );
+  }
 
-  return (
-    <div className={`hand-result ${gamePhase === 'scoring' ? 'final' : ''} ${isWin ? 'win' : ''}`}>
-      <div className="hand-name">{currentHand.displayName}</div>
-      {gamePhase === 'scoring' && (
-        <div className={`win-amount ${isWin ? 'positive' : 'negative'}`}>
-          {isWin ? `+$${lastWin}` : 'No win'}
+  // During scoring: show full comparison with outcome
+  if (gamePhase === 'scoring' && roundOutcome) {
+    const outcomeClass = roundOutcome === 'win' ? 'win' : roundOutcome === 'lose' ? 'lose' : 'tie';
+
+    return (
+      <div className={`hand-result final ${outcomeClass}`}>
+        <div className="hand-comparison">
+          <div className="hand-label">YOU</div>
+          <div className="hand-name">{currentHand.displayName}</div>
         </div>
-      )}
-      {gamePhase === 'scoring' && currentHand.payout > 0 && (
-        <div className="payout-multiplier">{currentHand.payout}x payout</div>
-      )}
-    </div>
-  );
+        <div className="vs-divider">vs</div>
+        <div className="hand-comparison">
+          <div className="hand-label">OPPONENT</div>
+          <div className="hand-name">{opponentHand?.displayName}</div>
+        </div>
+        <div className={`outcome-text ${outcomeClass}`}>
+          {roundOutcome === 'win' ? 'YOU WIN!' : roundOutcome === 'lose' ? 'YOU LOSE' : 'PUSH'}
+        </div>
+        {roundOutcome === 'win' && (
+          <div className="win-amount positive">+${lastWin}</div>
+        )}
+        {roundOutcome === 'tie' && (
+          <div className="win-amount tie">Bet returned</div>
+        )}
+        {roundOutcome === 'lose' && (
+          <div className="win-amount negative">-${currentBet}</div>
+        )}
+      </div>
+    );
+  }
+
+  return null;
 }

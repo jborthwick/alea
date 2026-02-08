@@ -75,7 +75,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
 }
 
 .roll-dots {
@@ -145,6 +144,62 @@
   margin-top: 0.25rem;
 }
 
+/* Opponent hand preview (during rolling) */
+.opponent-hand-preview {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.25rem;
+}
+
+/* Hand comparison layout (during scoring) */
+.hand-comparison {
+  text-align: center;
+  margin: 0.15rem 0;
+}
+
+.hand-comparison .hand-name {
+  margin-bottom: 0.15rem;
+}
+
+.hand-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #D4AF37;
+  margin-bottom: 0.1rem;
+}
+
+.vs-divider {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0.15rem 0;
+}
+
+.outcome-text {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-top: 0.4rem;
+}
+
+.outcome-text.win { color: #50C878; }
+.outcome-text.lose { color: #CD5C5C; }
+.outcome-text.tie { color: #D4AF37; }
+
+.hand-result.final.lose {
+  border: 2px solid #CD5C5C;
+  box-shadow: 0 0 20px rgba(205, 92, 92, 0.3);
+}
+
+.hand-result.final.tie {
+  border: 2px solid #D4AF37;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.win-amount.tie {
+  color: #D4AF37;
+}
+
 /* Payout Table */
 .payout-table {
   background: rgba(0, 0, 0, 0.5);
@@ -181,6 +236,15 @@
 .payout-value {
   color: #D4AF37;
   font-weight: bold;
+}
+
+.payout-info {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Hold indicator for dice */

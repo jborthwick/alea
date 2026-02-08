@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { Suspense } from 'react';
 import { DiceGroup } from '../Dice/DiceGroup';
+import { OpponentDiceGroup } from '../Dice/OpponentDice';
 import { PlaySurface } from '../Environment/PlaySurface';
 import { Lighting } from '../Environment/Lighting';
 import { GRAVITY } from '../../game/constants';
@@ -30,6 +31,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
           <Lighting tiltX={tiltX} tiltY={tiltY} />
           <PlaySurface />
           <DiceGroup rollTrigger={rollTrigger} intensity={intensity} />
+          <OpponentDiceGroup />
         </Physics>
       </Suspense>
     </Canvas>

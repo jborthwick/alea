@@ -1,5 +1,5 @@
-import type { CardValue, HandResult, HandRank } from '../types/game';
-import { VALUE_ORDER, PAYOUTS, HAND_NAMES } from './constants';
+import type { CardValue, HandResult, HandRank, RoundOutcome } from '../types/game';
+import { VALUE_ORDER, PAYOUTS, HAND_NAMES, HAND_RANK_VALUES } from './constants';
 
 function countValues(values: CardValue[]): Map<CardValue, number> {
   const counts = new Map<CardValue, number>();
@@ -69,4 +69,21 @@ export function evaluateHand(values: CardValue[]): HandResult {
     displayName: HAND_NAMES[rank],
     payout: PAYOUTS[rank],
   };
+}
+
+export function compareHands(
+  playerValues: CardValue[],
+  opponentValues: CardValue[]
+): RoundOutcome {
+  const playerHand = evaluateHand(playerValues);
+  const opponentHand = evaluateHand(opponentValues);
+
+  const playerRank = HAND_RANK_VALUES[playerHand.rank];
+  const opponentRank = HAND_RANK_VALUES[opponentHand.rank];
+
+  if (playerRank > opponentRank) return 'win';
+  if (playerRank < opponentRank) return 'lose';
+
+  // Same hand rank = push (tie)
+  return 'tie';
 }
