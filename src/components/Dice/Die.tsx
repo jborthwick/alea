@@ -68,7 +68,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   const heldPosition = useMemo((): { x: number; y: number; z: number } => ({
     x: (id - 2) * 0.9,
     y: 0.5,
-    z: -1.5,
+    z: -1.2,
   }), [id]);
 
   // Handle roll trigger
