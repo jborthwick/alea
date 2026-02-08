@@ -5,8 +5,8 @@ import './UI.css';
 const HAND_ORDER: HandRank[] = [
   'five-of-a-kind',
   'four-of-a-kind',
-  'full-house',
   'straight',
+  'full-house',
   'three-of-a-kind',
   'two-pair',
   'one-pair',

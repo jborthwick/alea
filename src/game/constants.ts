@@ -74,8 +74,8 @@ export const IMPULSE_VARIANCE = 0.35;
 export const HAND_RANK_VALUES: Record<HandRank, number> = {
   'five-of-a-kind': 8,
   'four-of-a-kind': 7,
-  'full-house': 6,
-  'straight': 5,
+  'straight': 6,
+  'full-house': 5,
   'three-of-a-kind': 4,
   'two-pair': 3,
   'one-pair': 2,
