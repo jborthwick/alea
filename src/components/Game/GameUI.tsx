@@ -25,6 +25,7 @@ export function GameUI({ onRoll }: GameUIProps) {
   const shakeEnabled = useGameStore((state) => state.shakeEnabled);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const { playRoll, initAudio } = useAudio();
   const { vibrateRoll } = useHaptics();
@@ -85,13 +86,22 @@ export function GameUI({ onRoll }: GameUIProps) {
       {/* Top bar */}
       <div className="ui-top">
         <ChipDisplay />
-        <button
-          className="settings-button"
-          onClick={() => setSettingsOpen(true)}
-          aria-label="Open settings"
-        >
-          ⚙️
-        </button>
+        <div className="top-buttons">
+          <button
+            className="info-button"
+            onClick={() => setInfoOpen(true)}
+            aria-label="Show hand rankings"
+          >
+            ℹ️
+          </button>
+          <button
+            className="settings-button"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Open settings"
+          >
+            ⚙️
+          </button>
+        </div>
       </div>
 
       {/* Settings panel */}
@@ -102,6 +112,18 @@ export function GameUI({ onRoll }: GameUIProps) {
         shakePermission={hasPermission}
         onRequestShakePermission={handleRequestShakePermission}
       />
+
+      {/* Info overlay (hand rankings for mobile) */}
+      {infoOpen && (
+        <div className="info-overlay" onClick={() => setInfoOpen(false)}>
+          <div className="info-panel" onClick={(e) => e.stopPropagation()}>
+            <PayoutTable />
+            <button className="info-close" onClick={() => setInfoOpen(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Center - Hand result */}
       <div className="ui-center">

@@ -31,6 +31,70 @@
   gap: 1rem;
 }
 
+/* Top button group */
+.top-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Info button - only visible on mobile where payout table is hidden */
+.info-button {
+  display: none;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-button:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Info overlay */
+.info-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 280px;
+  width: 90%;
+}
+
+.info-close {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #D4AF37;
+  border-radius: 4px;
+  color: #D4AF37;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+  font-family: 'Georgia', serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.info-close:hover {
+  background: rgba(212, 175, 55, 0.2);
+}
+
 /* Settings button */
 .settings-button {
   background: rgba(0, 0, 0, 0.4);
@@ -178,6 +242,10 @@
 
   .payout-container {
     display: none;
+  }
+
+  .info-button {
+    display: flex;
   }
 
   .roll-button {

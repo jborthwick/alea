@@ -55,14 +55,14 @@ export const DICE_EDGE_RADIUS = 0.065;
 
 // Play area (portrait orientation - taller than wide for mobile)
 export const TABLE_WIDTH = 5;   // X dimension (narrower)
-export const TABLE_DEPTH = 7;   // Z dimension (taller)
+export const TABLE_DEPTH = 6;   // Z dimension (taller) - reduced to leave room for opponent dice above
 export const WALL_HEIGHT = 0.6;  // Visible rail height
 export const CEILING_HEIGHT = 4; // Invisible ceiling to contain dice
 
 // Playable area offset - keeps dice away from bottom UI
 // Positive Z is toward the camera (bottom of screen)
 export const PLAY_AREA_Z_OFFSET = -0.8;  // Shift play area toward back of table
-export const PLAY_AREA_DEPTH = 5;        // Reduced depth for playable area
+export const PLAY_AREA_DEPTH = 4.5;      // Reduced depth for playable area
 
 // Roll parameters
 export const MIN_ANGULAR_VELOCITY = 30;
@@ -85,5 +85,5 @@ export const HAND_RANK_VALUES: Record<HandRank, number> = {
 // Opponent dice layout
 export const OPPONENT_DICE_SIZE = 0.45;
 export const OPPONENT_DICE_Y = 0.3;
-export const OPPONENT_DICE_Z = -4.3;
+export const OPPONENT_DICE_Z = -3.8;
 export const OPPONENT_DICE_SPACING = 0.7;
