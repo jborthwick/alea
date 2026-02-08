@@ -3,7 +3,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Vector3, Quaternion } from 'three';
 import type { GameState, DieState, CardValue, OpponentDieState } from '../types/game';
-import { CARD_VALUES } from '../types/game';
 import { evaluateHand, compareHands } from '../game/handEvaluator';
 import { decideHolds, rollOpponentValues } from '../game/opponentAI';
 import {
