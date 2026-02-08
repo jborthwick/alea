@@ -50,6 +50,7 @@ export const useGameStore = create<GameState>()(
 
       // Opponent state
       opponentDice: createInitialOpponentDice(),
+      pendingOpponentDice: null,
       opponentHand: null,
       opponentIsRolling: false,
       roundOutcome: null,
@@ -74,11 +75,11 @@ export const useGameStore = create<GameState>()(
           });
         }
 
-        // Pre-determine opponent's new dice values (revealed after player dice settle)
+        // Pre-determine opponent's new dice values (applied when spin starts in finishRoll)
         const currentState = get();
         const newOpponentDice = rollOpponentValues(currentState.opponentDice);
 
-        set({ isRolling: true, opponentDice: newOpponentDice });
+        set({ isRolling: true, pendingOpponentDice: newOpponentDice });
       },
 
       setRolling: (rolling: boolean) => {
@@ -93,8 +94,14 @@ export const useGameStore = create<GameState>()(
         const playerValues = state.dice.map((d) => d.value);
         const playerHandResult = evaluateHand(playerValues);
 
-        // Player dice are done; start opponent spin after a brief pause
-        set({ isRolling: false, currentHand: playerHandResult, opponentIsRolling: true });
+        // Player dice are done; apply pending opponent values and start spin
+        const pending = state.pendingOpponentDice;
+        set({
+          isRolling: false,
+          currentHand: playerHandResult,
+          opponentIsRolling: true,
+          ...(pending ? { opponentDice: pending, pendingOpponentDice: null } : {}),
+        });
 
         // After 500ms, stop opponent spin and resolve
         setTimeout(() => {
@@ -198,6 +205,7 @@ export const useGameStore = create<GameState>()(
           currentBet: Math.min(state.currentBet, state.bankroll, state.maxBet),
           // Reset opponent state
           opponentDice: createInitialOpponentDice(),
+          pendingOpponentDice: null,
           opponentHand: null,
           opponentIsRolling: false,
           roundOutcome: null,
@@ -223,6 +231,7 @@ export const useGameStore = create<GameState>()(
           currentHand: null,
           lastWin: 0,
           opponentDice: createInitialOpponentDice(),
+          pendingOpponentDice: null,
           opponentHand: null,
           opponentIsRolling: false,
           roundOutcome: null,

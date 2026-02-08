@@ -46,6 +46,7 @@ export interface GameState {
 
   // Opponent dice
   opponentDice: OpponentDieState[];
+  pendingOpponentDice: OpponentDieState[] | null;
   opponentHand: HandResult | null;
   opponentIsRolling: boolean;
   roundOutcome: RoundOutcome | null;
