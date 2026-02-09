@@ -21,6 +21,19 @@ function isStraight(values: CardValue[]): boolean {
   return true;
 }
 
+// Get the card values sorted by importance for tiebreakers
+// For pairs/sets: the matched cards come first, then kickers by value
+// For straights/high card: all cards sorted by value
+function getPrimaryCards(counts: Map<CardValue, number>): CardValue[] {
+  // Get the values sorted by count (descending) then by value (descending)
+  const sortedEntries = Array.from(counts.entries()).sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1]; // Sort by count first (pairs/sets)
+    return VALUE_ORDER[b[0]] - VALUE_ORDER[a[0]]; // Then by value (high to low)
+  });
+
+  return sortedEntries.map(([value]) => value);
+}
+
 export function evaluateHand(values: CardValue[]): HandResult {
   if (values.length !== 5) {
     throw new Error('Must have exactly 5 dice');
@@ -68,6 +81,7 @@ export function evaluateHand(values: CardValue[]): HandResult {
     rank,
     displayName: HAND_NAMES[rank],
     payout: PAYOUTS[rank],
+    primaryCards: getPrimaryCards(counts),
   };
 }
 
@@ -84,6 +98,16 @@ export function compareHands(
   if (playerRank > opponentRank) return 'win';
   if (playerRank < opponentRank) return 'lose';
 
-  // Same hand rank = push (tie)
+  // Same hand rank - compare high cards
+  // Compare cards in order of importance (pairs first, then kickers)
+  for (let i = 0; i < playerHand.primaryCards.length; i++) {
+    const playerCardValue = VALUE_ORDER[playerHand.primaryCards[i]];
+    const opponentCardValue = VALUE_ORDER[opponentHand.primaryCards[i]];
+
+    if (playerCardValue > opponentCardValue) return 'win';
+    if (playerCardValue < opponentCardValue) return 'lose';
+  }
+
+  // Truly equal hands (very rare) = tie
   return 'tie';
 }

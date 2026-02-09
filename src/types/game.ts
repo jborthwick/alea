@@ -32,6 +32,7 @@ export interface HandResult {
   rank: HandRank;
   displayName: string;
   payout: number;
+  primaryCards: CardValue[]; // Cards sorted by importance for tiebreakers
 }
 
 export type GamePhase = 'betting' | 'rolling' | 'scoring';
