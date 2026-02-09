@@ -36,7 +36,9 @@ A modern dice poker game with realistic 3D physics, inspired by Motion X Poker f
 | One Pair |
 | High Card |
 
-**Win** = 2x bet returned | **Tie** (same rank) = bet returned | **Lose** = bet lost
+**Win** = 2x bet returned | **Tie** (identical hands) = bet returned | **Lose** = bet lost
+
+When both players have the same hand rank (e.g., both have One Pair), the winner is determined by high card — the pair with higher cards wins (Aces beat Kings, etc.).
 
 ## Tech Stack
 

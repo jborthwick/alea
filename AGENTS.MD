@@ -52,7 +52,8 @@ src/
 - After player dice settle, opponent dice spin for 500ms then snap to their values
 - AI uses a basic smart hold strategy in `src/game/opponentAI.ts` (keeps pairs, trips, straights, full houses)
 - Opponent values are pre-determined at roll start; spin animation hides them until reveal
-- Win = 2x bet returned, Tie (same hand rank) = push (bet returned), Lose = bet lost
+- Win = 2x bet returned, Tie (identical hands) = push (bet returned), Lose = bet lost
+- High-card tiebreaker: when both players have the same hand rank, compare card values (pair of Aces beats pair of Kings)
 
 ### Face Detection
 - Quaternion-based detection in `src/physics/faceDetection.ts`
