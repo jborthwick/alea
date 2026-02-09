@@ -11,15 +11,17 @@ import {
   OPPONENT_DICE_SPACING,
 } from '../../game/constants';
 
-// Map a CardValue to the quaternion that shows that face on top.
+// Map a CardValue to the quaternion that shows that face on top with proper orientation.
 // Based on faceDetection.ts: +Y=9, -Y=A, +X=10, -X=K, +Z=J, -Z=Q
+// For face cards (A, K, Q, J), we ensure the corner letters are oriented upright
+// by avoiding Y-axis rotation (letters would appear sideways otherwise)
 const VALUE_QUATERNIONS: Record<string, THREE.Quaternion> = {
-  '9':  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)),
-  'A':  new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0)),
-  '10': new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI / 2)),
-  'K':  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2)),
-  'J':  new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)),
-  'Q':  new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)),
+  '9':  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)), // +Y face
+  'A':  new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0)), // -Y face (flipped)
+  '10': new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI / 2)), // +X face
+  'K':  new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 2)), // -X face
+  'J':  new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)), // +Z face
+  'Q':  new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), // -Z face
 };
 
 function OpponentDie({ id }: { id: number }) {
