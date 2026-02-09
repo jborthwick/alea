@@ -34,7 +34,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
       }}
       style={{ background: 'rgb(48, 48, 46)' }}
     >
-      {showFPS && <Stats />}
+      {showFPS && <Stats showPanel={0} className="stats-panel" />}
       <Suspense fallback={null}>
         <Physics gravity={[0, GRAVITY, 0]} timeStep="vary">
           <Lighting tiltX={tiltX} tiltY={tiltY} />

@@ -50,3 +50,12 @@ button {
 button:disabled {
   cursor: not-allowed;
 }
+
+/* FPS Stats positioning - move to bottom-left with safe area support */
+.stats-panel {
+  position: fixed !important;
+  top: auto !important;
+  left: env(safe-area-inset-left, 0) !important;
+  bottom: env(safe-area-inset-bottom, 0) !important;
+  right: auto !important;
+}
