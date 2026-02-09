@@ -78,48 +78,6 @@ function drawLetter(ctx: CanvasRenderingContext2D, letter: string, x: number, y:
   ctx.fillText(letter, x, y);
 }
 
-// Draw a pip (dot) for dice
-function drawPip(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, size, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// Draw pips for number cards
-function drawPips(ctx: CanvasRenderingContext2D, centerX: number, centerY: number, count: number, color: string) {
-  const pipSize = 18;  // Larger pip size
-  const spacing = 60;  // More spacing between pips
-
-  if (count === 9) {
-    // 9 pips in 3x3 grid
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 3; col++) {
-        const x = centerX + (col - 1) * spacing;
-        const y = centerY + (row - 1) * spacing;
-        drawPip(ctx, x, y, pipSize, color);
-      }
-    }
-  } else if (count === 10) {
-    // 10 pips: 4 corners + 4 edges + 2 center
-    // Four corners
-    drawPip(ctx, centerX - spacing, centerY - spacing, pipSize, color);
-    drawPip(ctx, centerX + spacing, centerY - spacing, pipSize, color);
-    drawPip(ctx, centerX - spacing, centerY + spacing, pipSize, color);
-    drawPip(ctx, centerX + spacing, centerY + spacing, pipSize, color);
-
-    // Four edges (middle of each side)
-    drawPip(ctx, centerX, centerY - spacing, pipSize, color);
-    drawPip(ctx, centerX, centerY + spacing, pipSize, color);
-    drawPip(ctx, centerX - spacing, centerY, pipSize, color);
-    drawPip(ctx, centerX + spacing, centerY, pipSize, color);
-
-    // Two center pips (vertically aligned)
-    drawPip(ctx, centerX - spacing / 2, centerY, pipSize, color);
-    drawPip(ctx, centerX + spacing / 2, centerY, pipSize, color);
-  }
-}
-
 // Draw suit using SVG path data
 function drawSuitPath(
   ctx: CanvasRenderingContext2D,
