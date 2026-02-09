@@ -25,6 +25,7 @@ const VALUE_QUATERNIONS: Record<string, THREE.Quaternion> = {
 
 function OpponentDie({ id }: { id: number }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const targetQuatRef = useRef<THREE.Quaternion>(new THREE.Quaternion());
   const die = useGameStore(state => state.opponentDice[id]);
   const opponentIsRolling = useGameStore(state => state.opponentIsRolling);
 
@@ -42,36 +43,31 @@ function OpponentDie({ id }: { id: number }) {
       meshRef.current.rotation.y += delta * 9;
       meshRef.current.rotation.z += delta * 6;
     } else {
-      // Snap to show the correct face value with upright orientation
-      const targetQ = VALUE_QUATERNIONS[die.value];
-      if (targetQ) {
-        // First, set the base rotation to show the correct face
-        meshRef.current.quaternion.copy(targetQ);
-
-        // Then, find the rotation around the Y axis (viewing axis) to make letters upright
-        // We want to minimize the rotation of the texture around the viewing direction
+      // Smoothly interpolate to the correct face value with upright orientation
+      const baseTargetQ = VALUE_QUATERNIONS[die.value];
+      if (baseTargetQ) {
+        // Calculate the target quaternion with orientation correction
         const upVector = new THREE.Vector3(0, 1, 0);
+        const tempQ = baseTargetQ.clone();
 
-        // Use the texture's up direction (the direction of the letters on the die face)
-        // For most faces, this is aligned with the die's local +Y in the texture space
-        const textureUpVector = new THREE.Vector3(0, 1, 0).applyQuaternion(meshRef.current.quaternion);
-
-        // Project onto the XZ plane to find how the texture is rotated around viewing axis
+        // Find the texture up direction
+        const textureUpVector = new THREE.Vector3(0, 1, 0).applyQuaternion(tempQ);
         textureUpVector.y = 0;
 
         if (textureUpVector.length() > 0.01) {
           textureUpVector.normalize();
-
-          // Calculate the angle from the world Z-axis (toward camera)
           const angle = Math.atan2(textureUpVector.x, textureUpVector.z);
-
-          // Round to nearest 90 degrees to keep it axis-aligned
           const snappedAngle = Math.round(angle / (Math.PI / 2)) * (Math.PI / 2);
-
-          // Apply additional Y rotation to correct the orientation
           const correctionQ = new THREE.Quaternion().setFromAxisAngle(upVector, -snappedAngle);
-          meshRef.current.quaternion.premultiply(correctionQ);
+          tempQ.premultiply(correctionQ);
         }
+
+        // Store the final target quaternion
+        targetQuatRef.current.copy(tempQ);
+
+        // Smoothly interpolate (slerp) from current to target
+        // Higher alpha = faster settling (0.15 gives a nice smooth deceleration)
+        meshRef.current.quaternion.slerp(targetQuatRef.current, Math.min(delta * 8, 0.15));
       }
     }
   });
