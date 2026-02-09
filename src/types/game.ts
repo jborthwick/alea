@@ -66,6 +66,7 @@ export interface GameState {
   // Settings
   soundEnabled: boolean;
   shakeEnabled: boolean;
+  showFPS: boolean;
 
   // Actions
   rollDice: () => void;
@@ -76,6 +77,7 @@ export interface GameState {
   newRound: () => void;
   toggleSound: () => void;
   toggleShake: () => void;
+  toggleFPS: () => void;
   resetBankroll: () => void;
   updateDieValue: (id: number, value: CardValue) => void;
   setRolling: (rolling: boolean) => void;

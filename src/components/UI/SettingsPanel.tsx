@@ -22,6 +22,8 @@ export function SettingsPanel({
   const toggleSound = useGameStore((state) => state.toggleSound);
   const shakeEnabled = useGameStore((state) => state.shakeEnabled);
   const toggleShake = useGameStore((state) => state.toggleShake);
+  const showFPS = useGameStore((state) => state.showFPS);
+  const toggleFPS = useGameStore((state) => state.toggleFPS);
   const resetBankroll = useGameStore((state) => state.resetBankroll);
 
   // Shake is only truly enabled if user wants it AND we have permission (or don't need it)
@@ -30,6 +32,7 @@ export function SettingsPanel({
   // Don't show incorrect state while loading from localStorage
   const showSoundEnabled = hydrated ? soundEnabled : false;
   const showShakeEnabled = hydrated ? shakeActuallyEnabled : false;
+  const showFPSEnabled = hydrated ? showFPS : false;
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -111,6 +114,21 @@ export function SettingsPanel({
               </button>
             </div>
           )}
+
+          {/* FPS toggle */}
+          <div className="settings-row">
+            <span className="settings-label">Show FPS</span>
+            <button
+              className={`settings-toggle ${showFPSEnabled ? 'active' : ''}`}
+              onClick={toggleFPS}
+              disabled={!hydrated}
+              aria-label={showFPSEnabled ? 'Hide FPS counter' : 'Show FPS counter'}
+            >
+              <span className="toggle-track">
+                <span className="toggle-thumb" />
+              </span>
+            </button>
+          </div>
 
           {/* Divider */}
           <div className="settings-divider" />

@@ -1,11 +1,13 @@
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
+import { Stats } from '@react-three/drei';
 import { Suspense } from 'react';
 import { DiceGroup } from '../Dice/DiceGroup';
 import { OpponentDiceGroup } from '../Dice/OpponentDice';
 import { PlaySurface } from '../Environment/PlaySurface';
 import { Lighting } from '../Environment/Lighting';
 import { GRAVITY } from '../../game/constants';
+import { useGameStore } from '../../store/gameStore';
 
 interface GameCanvasProps {
   rollTrigger: number;
@@ -15,6 +17,8 @@ interface GameCanvasProps {
 }
 
 export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasProps) {
+  const showFPS = useGameStore((state) => state.showFPS);
+
   // Use wider FOV on mobile to prevent dice cutoff
   const isMobile = window.innerWidth <= 768;
   const fov = isMobile ? 50 : 45;
@@ -30,6 +34,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
       }}
       style={{ background: 'rgb(48, 48, 46)' }}
     >
+      {showFPS && <Stats />}
       <Suspense fallback={null}>
         <Physics gravity={[0, GRAVITY, 0]} timeStep="vary">
           <Lighting tiltX={tiltX} tiltY={tiltY} />
