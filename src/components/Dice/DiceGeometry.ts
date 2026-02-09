@@ -109,7 +109,64 @@ function drawSuitPath(
   ctx.restore();
 }
 
-// Create texture for dice faces with card values
+// Map card values to image filenames
+const SVG_FILE_MAP: Record<string, string> = {
+  'A': 'dice_set_alpha_A.png',
+  'K': 'dice_set_alpha_K.png',
+  'Q': 'dice_set_alpha_Q.png',
+  'J': 'dice_set_alpha_J.png',
+  '9': 'dice_set_alpha_9.png',
+  '10': 'dice_set_alpha_10.png',
+};
+
+// Cache for loaded SVG images
+const svgImageCache: Record<string, HTMLImageElement> = {};
+
+// Create texture for dice faces from SVG files
+export async function createDiceTextureFromSVG(
+  value: string,
+  isHeld: boolean = false
+): Promise<THREE.CanvasTexture> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  // Background - cream/ivory color for casino dice
+  ctx.fillStyle = isHeld ? '#FFE4B5' : '#FFFAF0';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Load and draw SVG
+  const svgFileName = SVG_FILE_MAP[value];
+  if (svgFileName) {
+    // Check cache first
+    let img = svgImageCache[svgFileName];
+
+    if (!img) {
+      // Load SVG
+      img = new Image();
+      const svgModule = await import(`../../images/${svgFileName}`);
+      img.src = svgModule.default;
+
+      // Wait for image to load
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = reject;
+      });
+
+      svgImageCache[svgFileName] = img;
+    }
+
+    // Draw the SVG onto the canvas
+    ctx.drawImage(img, 0, 0, 512, 512);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+// Synchronous version that uses cached images (for re-renders)
 export function createDiceTexture(
   value: string,
   isHeld: boolean = false
@@ -120,88 +177,37 @@ export function createDiceTexture(
   const ctx = canvas.getContext('2d')!;
 
   // Background - cream/ivory color for casino dice
-  ctx.fillStyle = isHeld ? '#FFE4B5' : '#FFFAF0'; // Moccasin when held, FloralWhite otherwise
+  ctx.fillStyle = isHeld ? '#FFE4B5' : '#FFFAF0';
   ctx.fillRect(0, 0, 512, 512);
 
-  // The rounded box geometry only shows the center ~60% of the texture
-  // So we need to draw everything in a smaller "safe zone" in the center
-  const centerX = 256;
-  const centerY = 256;
-  const safeZone = 150; // Radius of visible area
-
-  // Add subtle border/edge effect (in safe zone)
-  ctx.strokeStyle = '#DEB887';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(centerX - safeZone, centerY - safeZone, safeZone * 2, safeZone * 2);
-
-  // Face cards with suits
-  if (value === 'A') {
-    // Ace - Spade (black)
-
-    // Top left corner letter (in safe zone) - 120px
-    drawLetter(ctx, 'A', centerX - safeZone + 12, centerY - safeZone + 12, 120, '#000000');
-
-    // Bottom right corner (rotated, in safe zone)
-    ctx.save();
-    ctx.translate(centerX + safeZone - 12, centerY + safeZone - 12);
-    ctx.rotate(Math.PI);
-    drawLetter(ctx, 'A', 0, 0, 120, '#000000');
-    ctx.restore();
-
-    // Draw spade suit in center (larger)
-    drawSuitPath(ctx, 'spade', centerX, centerY, 90, '#000000');
-  } else if (value === 'K') {
-    // King - Diamond (blue)
-
-    drawLetter(ctx, 'K', centerX - safeZone + 12, centerY - safeZone + 12, 120, '#0066CC');
-
-    ctx.save();
-    ctx.translate(centerX + safeZone - 12, centerY + safeZone - 12);
-    ctx.rotate(Math.PI);
-    drawLetter(ctx, 'K', 0, 0, 120, '#0066CC');
-    ctx.restore();
-
-    drawSuitPath(ctx, 'diamond', centerX, centerY, 90, '#0066CC');
-  } else if (value === 'Q') {
-    // Queen - Heart (red)
-
-    drawLetter(ctx, 'Q', centerX - safeZone + 12, centerY - safeZone + 12, 120, '#CC0000');
-
-    ctx.save();
-    ctx.translate(centerX + safeZone - 12, centerY + safeZone - 12);
-    ctx.rotate(Math.PI);
-    drawLetter(ctx, 'Q', 0, 0, 120, '#CC0000');
-    ctx.restore();
-
-    drawSuitPath(ctx, 'heart', centerX, centerY, 90, '#CC0000');
-  } else if (value === 'J') {
-    // Jack - Club (green)
-
-    drawLetter(ctx, 'J', centerX - safeZone + 12, centerY - safeZone + 12, 120, '#009900');
-
-    ctx.save();
-    ctx.translate(centerX + safeZone - 12, centerY + safeZone - 12);
-    ctx.rotate(Math.PI);
-    drawLetter(ctx, 'J', 0, 0, 120, '#009900');
-    ctx.restore();
-
-    drawSuitPath(ctx, 'club', centerX, centerY, 90, '#009900');
-  } else {
-    // Number cards (9, 10) - draw as text (larger than before)
-    ctx.fillStyle = '#8B0000'; // Dark red for card values
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Larger font size for better visibility
-    const fontSize = value.length > 1 ? 180 : 200;
-    ctx.font = `bold ${fontSize}px Georgia, serif`;
-
-    ctx.fillText(value, centerX, centerY);
+  // Draw cached SVG if available
+  const svgFileName = SVG_FILE_MAP[value];
+  if (svgFileName && svgImageCache[svgFileName]) {
+    ctx.drawImage(svgImageCache[svgFileName], 0, 0, 512, 512);
   }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
   return texture;
+}
+
+// Preload all SVG images
+export async function preloadDiceSVGs(): Promise<void> {
+  const loadPromises = Object.entries(SVG_FILE_MAP).map(async ([value, fileName]) => {
+    const img = new Image();
+    const svgModule = await import(`../../images/${fileName}`);
+    img.src = svgModule.default;
+
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => {
+        svgImageCache[fileName] = img;
+        resolve();
+      };
+      img.onerror = reject;
+    });
+  });
+
+  await Promise.all(loadPromises);
 }
 
 // Face values in order: +X, -X, +Y, -Y, +Z, -Z
