@@ -47,8 +47,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Create geometry once
   const geometry = useMemo(() => createDiceGeometry(), []);
 
-  // Create materials (update when held state changes)
-  const materials = useMemo(() => createDiceMaterials(isHeld), [isHeld]);
+  // Create materials fresh each time (no memoization to ensure texture updates are picked up)
+  const materials = createDiceMaterials(isHeld);
 
   // Generate a random initial rotation (stable per die)
   const initialRotation = useMemo((): [number, number, number] => [
