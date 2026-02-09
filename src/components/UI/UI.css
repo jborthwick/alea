@@ -154,11 +154,36 @@
   margin-top: 0.25rem;
 }
 
-/* Opponent hand preview (during rolling) */
-.opponent-hand-preview {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 0.25rem;
+/* Opponent hand display (top of screen) */
+.opponent-hand-display {
+  text-align: center;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.opponent-hand-display .hand-name {
+  font-size: 1rem;
+  margin: 0;
+  color: #FFFAF0;
+}
+
+/* Player hand display (bottom of screen) */
+.player-hand-display {
+  text-align: center;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  margin-bottom: 0.5rem;
+}
+
+.player-hand-display .hand-name {
+  font-size: 1.25rem;
+  margin: 0;
+  color: #FFFAF0;
+  font-weight: bold;
 }
 
 /* Hand comparison layout (during scoring) */

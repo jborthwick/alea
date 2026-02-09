@@ -62,7 +62,7 @@ export const CEILING_HEIGHT = 4; // Invisible ceiling to contain dice
 // Playable area offset - keeps dice away from bottom UI
 // Positive Z is toward the camera (bottom of screen)
 export const PLAY_AREA_Z_OFFSET = -0.8;  // Shift play area toward back of table
-export const PLAY_AREA_DEPTH = 4.5;      // Reduced depth for playable area
+export const PLAY_AREA_DEPTH = 7.5;      // Greatly expanded invisible barrier for more roll space upward
 
 // Roll parameters
 export const MIN_ANGULAR_VELOCITY = 30;

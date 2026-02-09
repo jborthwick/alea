@@ -64,11 +64,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     z: 1.5,
   }), [id]);
 
-  // For held dice, use a static position
+  // For held dice, use a static position (positive Z = toward camera/bottom of screen)
   const heldPosition = useMemo((): { x: number; y: number; z: number } => ({
     x: (id - 2) * 0.9,
     y: 0.5,
-    z: -1.2,
+    z: 2.2,
   }), [id]);
 
   // Handle roll trigger

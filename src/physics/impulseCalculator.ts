@@ -40,16 +40,16 @@ export function calculateRollImpulse(
   const baseImpulse = BASE_IMPULSE * clampedIntensity;
   const variance = 1 + (Math.random() - 0.5) * IMPULSE_VARIANCE;
 
-  // Throw dice with good horizontal spread and forward momentum
+  // Throw dice with good horizontal spread and backward momentum (away from camera/upward on screen)
   const linearImpulse = new Vector3(
-    (Math.random() - 0.5) * baseImpulse * 0.5,  // Reduced X spread for mobile
+    (Math.random() - 0.5) * baseImpulse * 0.5,  // Horizontal X spread
     baseImpulse * 0.35,                          // Good upward arc for bounces
-    (Math.random() * 0.3 + 0.2) * baseImpulse   // Reduced forward Z momentum for mobile
+    -(Math.random() * 0.5 + 0.3) * baseImpulse  // Negative Z = backward/upward on screen
   ).multiplyScalar(variance);
 
-  // Start position: spread across the table, above the surface
+  // Start position: spread across the table, above the surface, closer to front
   const spreadX = (dieIndex - 2) * 0.8 + (Math.random() - 0.5) * 0.4;
-  const spreadZ = (Math.random() - 0.5) * 0.5;
+  const spreadZ = 1.0 + Math.random() * 0.5; // Start near front (positive Z = toward camera)
   const startPosition = new Vector3(spreadX, 2.5 + Math.random() * 0.5, spreadZ);
 
   return {

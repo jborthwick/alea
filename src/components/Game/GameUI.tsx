@@ -3,7 +3,7 @@ import { useGameStore } from '../../store/gameStore';
 import { BettingControls } from '../UI/BettingControls';
 import { ChipDisplay } from '../UI/ChipDisplay';
 import { RollCounter } from '../UI/RollCounter';
-import { HandResult } from '../UI/HandResult';
+import { HandResult, OpponentHandDisplay, PlayerHandDisplay } from '../UI/HandResult';
 import { PayoutTable } from '../UI/PayoutTable';
 import { SettingsPanel } from '../UI/SettingsPanel';
 import { useAudio } from '../../hooks/useAudio';
@@ -86,6 +86,7 @@ export function GameUI({ onRoll }: GameUIProps) {
       {/* Top bar */}
       <div className="ui-top">
         <ChipDisplay />
+        <OpponentHandDisplay />
         <div className="top-buttons">
           <button
             className="info-button"
@@ -132,6 +133,7 @@ export function GameUI({ onRoll }: GameUIProps) {
 
       {/* Bottom bar */}
       <div className="ui-bottom">
+        <PlayerHandDisplay />
         {gamePhase === 'betting' && <BettingControls />}
 
         <button
