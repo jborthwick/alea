@@ -83,7 +83,7 @@ export const HAND_RANK_VALUES: Record<HandRank, number> = {
 };
 
 // Opponent dice layout
-export const OPPONENT_DICE_SIZE = 0.45;
+export const OPPONENT_DICE_SIZE = 0.55;  // Increased from 0.45 for better visibility
 export const OPPONENT_DICE_Y = 0.3;
 export const OPPONENT_DICE_Z = -3.8;
-export const OPPONENT_DICE_SPACING = 0.7;
+export const OPPONENT_DICE_SPACING = 0.8;  // Slightly increased spacing for larger dice
