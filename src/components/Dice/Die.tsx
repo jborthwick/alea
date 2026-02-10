@@ -28,14 +28,63 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   const lastRollTrigger = useRef(rollTrigger);
   // Store the rotation when die settles so held dice keep their orientation
   const settledRotation = useRef<THREE.Quaternion>(new THREE.Quaternion());
+  // Store the position when die settles
+  const settledPosition = useRef<THREE.Vector3>(new THREE.Vector3());
 
   // Track whether dice are actively rolling (cleared by roll trigger, set false by settle)
   const isPhysicsActive = useRef(false);
 
+  // Animation state for hold/unhold transitions
+  const isTransitioning = useRef(false);
+  const transitionProgress = useRef(0);
+  const transitionStartPos = useRef<THREE.Vector3>(new THREE.Vector3());
+  const transitionStartRot = useRef<THREE.Quaternion>(new THREE.Quaternion());
+  const wasHeld = useRef(false);
+  const lastRollsRemaining = useRef(3);
+
   const dice = useGameStore((state) => state.dice);
   const gamePhase = useGameStore((state) => state.gamePhase);
+  const rollsRemaining = useGameStore((state) => state.rollsRemaining);
   const die = dice.find((d) => d.id === id);
   const isHeld = die?.isHeld ?? false;
+
+  // After third roll, all dice should move to hold tray
+  const shouldBeInHoldTray = (gamePhase === 'rolling' || gamePhase === 'scoring') && rollsRemaining === 0;
+
+  // Detect hold state changes and start transition
+  useEffect(() => {
+    // Don't transition during betting phase - let parking logic handle it
+    if (gamePhase === 'betting') {
+      wasHeld.current = isHeld;
+      isTransitioning.current = false;
+      lastRollsRemaining.current = rollsRemaining;
+      return;
+    }
+
+    // Detect if we just reached 0 rolls remaining (just finished third roll)
+    const justFinishedLastRoll = lastRollsRemaining.current === 1 && rollsRemaining === 0;
+
+    const shouldTransition = ((isHeld !== wasHeld.current) || (justFinishedLastRoll && !isHeld)) && isSettled;
+
+    if (shouldTransition) {
+      const rb = rigidBodyRef.current;
+      if (!rb) return;
+
+      // Start transition
+      isTransitioning.current = true;
+      transitionProgress.current = 0;
+
+      // Store current position and rotation as start of transition
+      const pos = rb.translation();
+      transitionStartPos.current.set(pos.x, pos.y, pos.z);
+      const rot = rb.rotation();
+      transitionStartRot.current.set(rot.x, rot.y, rot.z, rot.w);
+
+      wasHeld.current = isHeld || shouldBeInHoldTray;
+    }
+
+    lastRollsRemaining.current = rollsRemaining;
+  }, [isHeld, isSettled, gamePhase, shouldBeInHoldTray, rollsRemaining]);
 
   // Handle click on die
   const handleClick = () => {
@@ -111,13 +160,52 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     }
   }, [rollTrigger, isHeld, id, intensity]);
 
-  // Main frame loop: handles parking and physics settling
-  useFrame(() => {
+  // Main frame loop: handles parking, transitions, and physics settling
+  useFrame((_, delta) => {
     const rb = rigidBodyRef.current;
     if (!rb) return;
 
+    // Handle hold/unhold transitions
+    if (isTransitioning.current) {
+      transitionProgress.current += delta * 3; // 3 = speed (higher = faster)
+
+      if (transitionProgress.current >= 1) {
+        // Transition complete
+        transitionProgress.current = 1;
+        isTransitioning.current = false;
+      }
+
+      // Ease-in-out function for smooth animation
+      const easeInOutCubic = (t: number) => {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      };
+      const t = easeInOutCubic(transitionProgress.current);
+
+      // Interpolate position
+      const targetPos = (isHeld || shouldBeInHoldTray) ? heldPosition : settledPosition.current;
+      const currentPos = new THREE.Vector3().lerpVectors(
+        transitionStartPos.current,
+        new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z),
+        t
+      );
+
+      // Interpolate rotation (slerp for quaternions)
+      const targetRot = settledRotation.current;
+      const currentRot = new THREE.Quaternion().slerpQuaternions(
+        transitionStartRot.current,
+        targetRot,
+        t
+      );
+
+      rb.setTranslation({ x: currentPos.x, y: currentPos.y, z: currentPos.z }, true);
+      rb.setRotation({ x: currentRot.x, y: currentRot.y, z: currentRot.z, w: currentRot.w }, true);
+      rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      return;
+    }
+
     // Determine if we should park this frame (computed inline, no effect delay)
-    const shouldPark = gamePhase === 'betting' || (isHeld && !isPhysicsActive.current);
+    const shouldPark = gamePhase === 'betting' || ((isHeld || shouldBeInHoldTray) && !isPhysicsActive.current);
 
     if (shouldPark) {
       const pos = gamePhase === 'betting' ? preRollPosition : heldPosition;
@@ -195,6 +283,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
       const faceValue = getFaceValue(quaternion);
 
       settledRotation.current.copy(quaternion);
+      settledPosition.current.set(pos.x, pos.y, pos.z);
       isPhysicsActive.current = false;
       setIsSettled(true);
       onSettle(id, faceValue);
