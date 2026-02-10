@@ -3,7 +3,7 @@ import { GameCanvas } from './GameCanvas';
 import { GameUI } from './GameUI';
 import { useGameStore } from '../../store/gameStore';
 import { useShakeDetection } from '../../hooks/useShakeDetection';
-import { preloadDiceSVGs } from '../Dice/DiceGeometry';
+import { preloadDicePNGs } from '../Dice/DiceGeometry';
 import './Game.css';
 
 export function Game() {
@@ -16,9 +16,9 @@ export function Game() {
   const rollDice = useGameStore((state) => state.rollDice);
   const isRolling = useGameStore((state) => state.isRolling);
 
-  // Preload SVGs on mount
+  // Preload PNGs on mount
   useEffect(() => {
-    preloadDiceSVGs().then(() => {
+    preloadDicePNGs().then(() => {
       setSvgsLoaded(true);
     });
   }, []);
