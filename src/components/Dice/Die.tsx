@@ -6,7 +6,7 @@ import { useGameStore } from '../../store/gameStore';
 import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry } from './DiceGeometry';
-import { DICE_SIZE, ANGULAR_DAMPING, LINEAR_DAMPING } from '../../game/constants';
+import { DICE_SIZE, ANGULAR_DAMPING, LINEAR_DAMPING, DICE_MATERIAL_STYLE } from '../../game/constants';
 
 interface DieProps {
   id: number;
@@ -97,7 +97,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   const geometry = useMemo(() => createDiceGeometry(), []);
 
   // Create materials based on held state - memoize to prevent constant recreation
-  const materials = useMemo(() => createDiceMaterials(isHeld), [isHeld]);
+  const materials = useMemo(() => createDiceMaterials(isHeld, DICE_MATERIAL_STYLE), [isHeld]);
 
   // Generate a random initial rotation (stable per die)
   const initialRotation = useMemo((): [number, number, number] => [

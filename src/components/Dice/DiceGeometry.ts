@@ -9,6 +9,43 @@ import diceJ from '../../images/dice_set_alpha_J.png';
 import dice9 from '../../images/dice_set_alpha_9.png';
 import dice10 from '../../images/dice_set_alpha_10.png';
 
+// Dice material presets - different visual styles
+export type DiceMaterialPreset = 'casino' | 'glossy' | 'matte' | 'pearlescent';
+
+interface MaterialProperties {
+  roughness: number;
+  metalness: number;
+  clearcoat?: number;
+  clearcoatRoughness?: number;
+}
+
+export const DICE_MATERIAL_PRESETS: Record<DiceMaterialPreset, MaterialProperties> = {
+  // Standard casino dice - current default
+  casino: {
+    roughness: 0.4,
+    metalness: 0.1,
+  },
+  // Glossy plastic finish
+  glossy: {
+    roughness: 0.2,
+    metalness: 0.0,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.1,
+  },
+  // Matte finish
+  matte: {
+    roughness: 0.9,
+    metalness: 0.0,
+  },
+  // Shiny/pearlescent
+  pearlescent: {
+    roughness: 0.15,
+    metalness: 0.3,
+    clearcoat: 0.8,
+    clearcoatRoughness: 0.05,
+  },
+};
+
 // Create a rounded box geometry for the die
 export function createDiceGeometry(): THREE.BufferGeometry {
   const size = DICE_SIZE;
@@ -122,14 +159,32 @@ export async function preloadDicePNGs(): Promise<void> {
 // Mapped to: 10, K, 9, A, J, Q
 export const FACE_VALUES = ['10', 'K', '9', 'A', 'J', 'Q'];
 
-// Create materials for all six faces
-export function createDiceMaterials(isHeld: boolean = false): THREE.MeshStandardMaterial[] {
+// Create materials for all six faces with specified material preset
+export function createDiceMaterials(
+  isHeld: boolean = false,
+  preset: DiceMaterialPreset = 'casino'
+): THREE.Material[] {
+  const materialProps = DICE_MATERIAL_PRESETS[preset];
+  const useClearcoat = materialProps.clearcoat !== undefined;
+
   return FACE_VALUES.map((value) => {
     const texture = createDiceTexture(value, isHeld);
-    return new THREE.MeshStandardMaterial({
-      map: texture,
-      roughness: 0.4,
-      metalness: 0.1,
-    });
+
+    // Use MeshPhysicalMaterial if clearcoat is needed, otherwise MeshStandardMaterial
+    if (useClearcoat) {
+      return new THREE.MeshPhysicalMaterial({
+        map: texture,
+        roughness: materialProps.roughness,
+        metalness: materialProps.metalness,
+        clearcoat: materialProps.clearcoat,
+        clearcoatRoughness: materialProps.clearcoatRoughness,
+      });
+    } else {
+      return new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: materialProps.roughness,
+        metalness: materialProps.metalness,
+      });
+    }
   });
 }

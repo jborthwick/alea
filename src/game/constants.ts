@@ -53,6 +53,19 @@ export const LINEAR_DAMPING = 0.15;
 export const DICE_SIZE = 0.65;
 export const DICE_EDGE_RADIUS = 0.065;
 
+/**
+ * Dice material visual style preset
+ *
+ * Available options:
+ * - 'casino': Standard casino dice (roughness: 0.4, metalness: 0.1)
+ * - 'glossy': Glossy plastic finish with clearcoat (roughness: 0.2, clearcoat: 0.5)
+ * - 'matte': Matte finish (roughness: 0.9, metalness: 0.0)
+ * - 'pearlescent': Shiny/pearlescent with high clearcoat (roughness: 0.15, metalness: 0.3, clearcoat: 0.8)
+ *
+ * To add a new material preset, edit DICE_MATERIAL_PRESETS in DiceGeometry.ts
+ */
+export const DICE_MATERIAL_STYLE = 'casino' as const;
+
 // Play area (1:1 square format for easier asset creation)
 export const TABLE_WIDTH = 5;   // X dimension
 export const TABLE_DEPTH = 5;   // Z dimension (same as width for 1:1 ratio)
