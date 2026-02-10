@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { Stats } from '@react-three/drei';
 import { Suspense } from 'react';
+import * as THREE from 'three';
 import { DiceGroup } from '../Dice/DiceGroup';
 import { OpponentDiceGroup } from '../Dice/OpponentDice';
 import { PlaySurface } from '../Environment/PlaySurface';
@@ -25,7 +26,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
 
   return (
     <Canvas
-      shadows
+      shadows={{ type: THREE.VSMShadowMap }}
       camera={{
         position: [0, 12, 2],
         fov,
