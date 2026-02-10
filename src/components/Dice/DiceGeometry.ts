@@ -1,6 +1,14 @@
 import * as THREE from 'three';
 import { DICE_SIZE, DICE_EDGE_RADIUS } from '../../game/constants';
 
+// Import all PNG images statically for Vite bundling
+import diceA from '../../images/dice_set_alpha_A.png';
+import diceK from '../../images/dice_set_alpha_K.png';
+import diceQ from '../../images/dice_set_alpha_Q.png';
+import diceJ from '../../images/dice_set_alpha_J.png';
+import dice9 from '../../images/dice_set_alpha_9.png';
+import dice10 from '../../images/dice_set_alpha_10.png';
+
 // Create a rounded box geometry for the die
 export function createDiceGeometry(): THREE.BufferGeometry {
   const size = DICE_SIZE;
@@ -54,18 +62,18 @@ export function createDiceGeometry(): THREE.BufferGeometry {
   return geometry;
 }
 
-// Map card values to image filenames
-const SVG_FILE_MAP: Record<string, string> = {
-  'A': 'dice_set_alpha_A.png',
-  'K': 'dice_set_alpha_K.png',
-  'Q': 'dice_set_alpha_Q.png',
-  'J': 'dice_set_alpha_J.png',
-  '9': 'dice_set_alpha_9.png',
-  '10': 'dice_set_alpha_10.png',
+// Map card values to imported image URLs
+const IMAGE_MAP: Record<string, string> = {
+  'A': diceA,
+  'K': diceK,
+  'Q': diceQ,
+  'J': diceJ,
+  '9': dice9,
+  '10': dice10,
 };
 
-// Cache for loaded SVG images
-const svgImageCache: Record<string, HTMLImageElement> = {};
+// Cache for loaded images
+const imageCache: Record<string, HTMLImageElement> = {};
 
 // Create texture for dice faces from PNG files
 export function createDiceTexture(
@@ -82,9 +90,9 @@ export function createDiceTexture(
   ctx.fillRect(0, 0, 512, 512);
 
   // Draw cached PNG if available
-  const svgFileName = SVG_FILE_MAP[value];
-  if (svgFileName && svgImageCache[svgFileName]) {
-    ctx.drawImage(svgImageCache[svgFileName], 0, 0, 512, 512);
+  const imageUrl = IMAGE_MAP[value];
+  if (imageUrl && imageCache[imageUrl]) {
+    ctx.drawImage(imageCache[imageUrl], 0, 0, 512, 512);
   }
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -94,14 +102,13 @@ export function createDiceTexture(
 
 // Preload all PNG images - must be called before rendering
 export async function preloadDicePNGs(): Promise<void> {
-  const loadPromises = Object.entries(SVG_FILE_MAP).map(async ([_, fileName]) => {
+  const loadPromises = Object.entries(IMAGE_MAP).map(async ([_, imageUrl]) => {
     const img = new Image();
-    const svgModule = await import(`../../images/${fileName}`);
-    img.src = svgModule.default;
+    img.src = imageUrl;
 
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
-        svgImageCache[fileName] = img;
+        imageCache[imageUrl] = img;
         resolve();
       };
       img.onerror = reject;
