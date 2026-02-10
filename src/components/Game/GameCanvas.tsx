@@ -33,7 +33,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
         near: 0.1,
         far: 100,
       }}
-      style={{ background: 'rgb(48, 48, 46)' }}
+      style={{ background: 'rgb(34, 32, 26)' }}
     >
       {showFPS && <Stats showPanel={0} className="stats-panel" />}
       <Suspense fallback={null}>
