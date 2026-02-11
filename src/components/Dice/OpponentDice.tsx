@@ -5,6 +5,7 @@ import { useGameStore } from '../../store/gameStore';
 import { createDiceGeometry, createDiceMaterials } from './DiceGeometry';
 import {
   DICE_SIZE,
+  DICE_MATERIAL_STYLE,
   OPPONENT_DICE_SIZE,
   OPPONENT_DICE_Y,
   OPPONENT_DICE_Z,
@@ -33,7 +34,7 @@ function OpponentDie({ id }: { id: number }) {
   const xPos = (id - 2) * OPPONENT_DICE_SPACING;
 
   const geometry = useMemo(() => createDiceGeometry(), []);
-  const materials = useMemo(() => createDiceMaterials(die.isHeld), [die.isHeld]);
+  const materials = useMemo(() => createDiceMaterials(die.isHeld, DICE_MATERIAL_STYLE), [die.isHeld]);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;

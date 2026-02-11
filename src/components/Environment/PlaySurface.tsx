@@ -109,14 +109,14 @@ export function PlaySurface() {
         <CuboidCollider args={[halfWidth, CEILING_HEIGHT / 2, wallHalfThickness]} />
       </RigidBody>
 
-      {/* Left wall collider */}
+      {/* Left wall collider - extends full depth + wall thickness for corner coverage */}
       <RigidBody type="fixed" position={[-halfWidth - wallHalfThickness, CEILING_HEIGHT / 2, 0]}>
-        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfDepth]} />
+        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfDepth + wallThickness]} />
       </RigidBody>
 
-      {/* Right wall collider */}
+      {/* Right wall collider - extends full depth + wall thickness for corner coverage */}
       <RigidBody type="fixed" position={[halfWidth + wallHalfThickness, CEILING_HEIGHT / 2, 0]}>
-        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfDepth]} />
+        <CuboidCollider args={[wallHalfThickness, CEILING_HEIGHT / 2, halfDepth + wallThickness]} />
       </RigidBody>
 
       {/* Invisible ceiling collider */}

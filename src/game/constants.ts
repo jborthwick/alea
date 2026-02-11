@@ -43,15 +43,16 @@ export const MAX_BET = 500;
 export const BET_INCREMENT = 10;
 
 // Physics constants
-export const GRAVITY = -55;
-export const DICE_RESTITUTION = 0.4;  // More bouncy
-export const DICE_FRICTION = 0.6;
-export const ANGULAR_DAMPING = 0.4;
-export const LINEAR_DAMPING = 0.15;
+export const GRAVITY = -35;
+export const DICE_RESTITUTION = 0.75;
+export const DICE_FRICTION = 0.4;
+export const DICE_MASS = 0.3;
+export const ANGULAR_DAMPING = 0.1;
+export const LINEAR_DAMPING = 0.1;
 
 // Dice appearance
-export const DICE_SIZE = 0.65;
-export const DICE_EDGE_RADIUS = 0.065;
+export const DICE_SIZE = 0.70;
+export const DICE_EDGE_RADIUS = 0.075;
 
 /**
  * Dice material visual style preset
