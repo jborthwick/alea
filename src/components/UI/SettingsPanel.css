@@ -15,8 +15,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgb(60, 60, 58);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgb(var(--bg));
+  border: none;
   border-radius: 12px;
   padding: 1.5rem;
   min-width: 280px;
@@ -34,7 +34,7 @@
 
 .settings-header h2 {
   margin: 0;
-  color: #D4AF37;
+  color: rgb(var(--accent));
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -102,7 +102,7 @@
 }
 
 .settings-toggle.active .toggle-track {
-  background: #D4AF37;
+  background: rgb(var(--accent));
 }
 
 .toggle-thumb {
@@ -159,8 +159,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgb(60, 60, 58);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgb(var(--bg));
+  border: none;
   border-radius: 12px;
   padding: 1.5rem;
   min-width: 260px;
@@ -172,7 +172,7 @@
 
 .confirm-modal h3 {
   margin: 0 0 0.75rem 0;
-  color: #D4AF37;
+  color: rgb(var(--accent));
   font-size: 1.25rem;
 }
 

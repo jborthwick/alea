@@ -13,7 +13,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: #D4AF37;
+  color: rgb(var(--accent));
   text-transform: uppercase;
 }
 
@@ -27,9 +27,9 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #D4AF37;
+  border: 2px solid rgb(var(--accent));
   background: rgba(0, 0, 0, 0.4);
-  color: #D4AF37;
+  color: rgb(var(--accent));
   font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
@@ -40,8 +40,8 @@
 }
 
 .bet-button:hover:not(:disabled) {
-  background: #D4AF37;
-  color: #1a1a2e;
+  background: rgb(var(--accent));
+  color: rgb(var(--text-on-accent));
 }
 
 .bet-button:disabled {
@@ -52,7 +52,7 @@
 .bet-amount {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #FFFAF0;
+  color: rgb(var(--text));
   min-width: 80px;
   text-align: center;
 }
@@ -67,8 +67,8 @@
 .chip-amount {
   font-size: 1.75rem;
   font-weight: bold;
-  color: #50C878;
-  text-shadow: 0 0 10px rgba(80, 200, 120, 0.3);
+  color: rgb(var(--win));
+  text-shadow: 0 0 10px rgba(var(--win), 0.3);
 }
 
 .roll-counter {
@@ -90,8 +90,8 @@
 }
 
 .roll-dot.available {
-  background: #D4AF37;
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+  background: rgb(var(--accent));
+  box-shadow: 0 0 8px rgba(var(--accent), 0.5);
 }
 
 .roll-dot.used {
@@ -118,14 +118,14 @@
 }
 
 .hand-result.win {
-  border: 2px solid #50C878;
-  box-shadow: 0 0 20px rgba(80, 200, 120, 0.3);
+  border: 2px solid rgb(var(--win));
+  box-shadow: 0 0 20px rgba(var(--win), 0.3);
 }
 
 .hand-name {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #FFFAF0;
+  color: rgb(var(--text));
   margin-top: 0.5rem;
 }
 
@@ -136,21 +136,21 @@
 }
 
 .win-amount.positive {
-  color: #50C878;
-  text-shadow: 0 0 10px rgba(80, 200, 120, 0.5);
+  color: rgb(var(--win));
+  text-shadow: 0 0 10px rgba(var(--win), 0.5);
 }
 
 .win-amount.negative {
-  color: #CD5C5C;
+  color: rgb(var(--lose));
 }
 
 .win-amount.tie {
-  color: #D4AF37;
+  color: rgb(var(--accent));
 }
 
 .payout-multiplier {
   font-size: 0.875rem;
-  color: #D4AF37;
+  color: rgb(var(--accent));
   margin-top: 0.25rem;
 }
 
@@ -166,7 +166,7 @@
 .opponent-hand-display .hand-name {
   font-size: 1rem;
   margin: 0;
-  color: #FFFAF0;
+  color: rgb(var(--text));
 }
 
 /* Player hand display (bottom of screen) */
@@ -182,7 +182,7 @@
 .player-hand-display .hand-name {
   font-size: 1.25rem;
   margin: 0;
-  color: #FFFAF0;
+  color: rgb(var(--text));
   font-weight: bold;
 }
 
@@ -219,7 +219,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: #D4AF37;
+  color: rgb(var(--accent));
   margin-bottom: 0.1rem;
 }
 
@@ -236,9 +236,9 @@
   animation: fadeIn 0.5s ease-in;
 }
 
-.outcome-text.win { color: #50C878; }
-.outcome-text.lose { color: #CD5C5C; }
-.outcome-text.tie { color: #D4AF37; }
+.outcome-text.win { color: rgb(var(--win)); }
+.outcome-text.lose { color: rgb(var(--lose)); }
+.outcome-text.tie { color: rgb(var(--accent)); }
 
 @keyframes fadeIn {
   from {
@@ -252,17 +252,17 @@
 }
 
 .hand-result.final.lose {
-  border: 2px solid #CD5C5C;
-  box-shadow: 0 0 20px rgba(205, 92, 92, 0.3);
+  border: 2px solid rgb(var(--lose));
+  box-shadow: 0 0 20px rgba(var(--lose), 0.3);
 }
 
 .hand-result.final.tie {
-  border: 2px solid #D4AF37;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  border: 2px solid rgb(var(--accent));
+  box-shadow: 0 0 20px rgba(var(--accent), 0.3);
 }
 
 .win-amount.tie {
-  color: #D4AF37;
+  color: rgb(var(--accent));
 }
 
 /* Payout Table */
@@ -274,7 +274,7 @@
 }
 
 .payout-table h3 {
-  color: #D4AF37;
+  color: rgb(var(--accent));
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -295,11 +295,11 @@
 }
 
 .payout-hand {
-  color: #FFFAF0;
+  color: rgb(var(--text));
 }
 
 .payout-value {
-  color: #D4AF37;
+  color: rgb(var(--accent));
   font-weight: bold;
 }
 
@@ -318,8 +318,8 @@
   bottom: -30px;
   left: 50%;
   transform: translateX(-50%);
-  background: #D4AF37;
-  color: #1a1a2e;
+  background: rgb(var(--accent));
+  color: rgb(var(--text-on-accent));
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.75rem;

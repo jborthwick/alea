@@ -65,7 +65,7 @@ export function Game() {
   if (!svgsLoaded) {
     return (
       <div className="game-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#FFFAF0', fontSize: '24px' }}>Loading...</div>
+        <div style={{ color: 'rgb(var(--text))', fontSize: '24px' }}>Loading...</div>
       </div>
     );
   }
