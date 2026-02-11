@@ -6,7 +6,8 @@ import { useGameStore } from '../../store/gameStore';
 import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry } from './DiceGeometry';
-import { DICE_SIZE, ANGULAR_DAMPING, LINEAR_DAMPING, DICE_MATERIAL_STYLE } from '../../game/constants';
+import { DICE_SIZE, DICE_MATERIAL_STYLE, TABLE_WIDTH, TABLE_DEPTH } from '../../game/constants';
+import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
 
 interface DieProps {
   id: number;
@@ -21,6 +22,7 @@ interface DieProps {
 const ACE_UP_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0));
 
 export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHold }: DieProps) {
+  const { mass, restitution, friction, angularDamping, linearDamping, diceSize } = usePhysicsDebug();
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const [isSettled, setIsSettled] = useState(false);
@@ -165,6 +167,23 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     const rb = rigidBodyRef.current;
     if (!rb) return;
 
+    // Update physics properties from debug sliders (Rapier doesn't react to prop changes)
+    rb.setLinearDamping(linearDamping);
+    rb.setAngularDamping(angularDamping);
+    // Update collider properties
+    const collider = rb.collider(0);
+    if (collider) {
+      collider.setRestitution(restitution);
+      collider.setFriction(friction);
+      collider.setMass(mass);
+    }
+
+    // Update mesh scale for dice size changes
+    if (meshRef.current) {
+      const scale = (diceSize / DICE_SIZE) * (canHold && isHovered ? 1.08 : 1);
+      meshRef.current.scale.setScalar(scale);
+    }
+
     // Handle hold/unhold transitions
     if (isTransitioning.current) {
       transitionProgress.current += delta * 3; // 3 = speed (higher = faster)
@@ -231,6 +250,18 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     const angularSpeed = Math.sqrt(
       angvel.x * angvel.x + angvel.y * angvel.y + angvel.z * angvel.z
     );
+
+    // Out-of-bounds recovery: teleport die back if it escapes the play area
+    const oobMargin = 1;
+    const halfW = TABLE_WIDTH / 2 + oobMargin;
+    const halfD = TABLE_DEPTH / 2 + oobMargin;
+    if (pos.y < -2 || Math.abs(pos.x) > halfW || Math.abs(pos.z) > halfD) {
+      rb.setTranslation({ x: (id - 2) * 0.9, y: 3, z: 0 }, true);
+      rb.setLinvel({ x: 0, y: -5, z: 0 }, true);
+      rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      rb.wakeUp();
+      return;
+    }
 
     // Detect if die is stacked on another (too high off the table)
     const maxValidHeight = DICE_SIZE * 1.2;
@@ -312,11 +343,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
       position={initialPosition}
       rotation={initialRotation}
       colliders={false}
-      restitution={0.3}
-      friction={0.5}
-      angularDamping={ANGULAR_DAMPING}
-      linearDamping={LINEAR_DAMPING}
-      mass={1}
+      restitution={restitution}
+      friction={friction}
+      angularDamping={angularDamping}
+      linearDamping={linearDamping}
+      mass={mass}
     >
       <CuboidCollider args={[DICE_SIZE / 2, DICE_SIZE / 2, DICE_SIZE / 2]} />
       <mesh
