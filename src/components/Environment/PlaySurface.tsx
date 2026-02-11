@@ -50,6 +50,33 @@ function fixExtrudeUVs(geometry: THREE.ExtrudeGeometry, width: number, depth: nu
   uv.needsUpdate = true;
 }
 
+// Create a rim/frame shape (outer rect with inner rect hole)
+function createRimShape(
+  outerWidth: number, outerDepth: number, outerRadius: number,
+  innerWidth: number, innerDepth: number, innerRadius: number,
+): THREE.Shape {
+  const outer = createRoundedRectShape(outerWidth, outerDepth, outerRadius);
+
+  // Create inner cutout as a hole (wound in opposite direction)
+  const hole = new THREE.Path();
+  const ihw = innerWidth / 2;
+  const ihd = innerDepth / 2;
+  const ir = Math.min(innerRadius, ihw, ihd);
+
+  hole.moveTo(-ihw + ir, -ihd);
+  hole.lineTo(ihw - ir, -ihd);
+  hole.quadraticCurveTo(ihw, -ihd, ihw, -ihd + ir);
+  hole.lineTo(ihw, ihd - ir);
+  hole.quadraticCurveTo(ihw, ihd, ihw - ir, ihd);
+  hole.lineTo(-ihw + ir, ihd);
+  hole.quadraticCurveTo(-ihw, ihd, -ihw, ihd - ir);
+  hole.lineTo(-ihw, -ihd + ir);
+  hole.quadraticCurveTo(-ihw, -ihd, -ihw + ir, -ihd);
+
+  outer.holes.push(hole);
+  return outer;
+}
+
 export function PlaySurface() {
   const tableTexture = useLoader(THREE.TextureLoader, tableRoosterImg);
 
@@ -59,6 +86,9 @@ export function PlaySurface() {
   const wallHalfThickness = wallThickness / 2;
 
   const cornerRadius = 0.3;
+  const rimWidth = 0.25;
+  const rimHeight = 0.35;
+
   const roundedShape = useMemo(() => createRoundedRectShape(TABLE_WIDTH, TABLE_DEPTH, cornerRadius), []);
   const extrudeSettings = useMemo(() => ({
     depth: 0.4,
@@ -73,6 +103,22 @@ export function PlaySurface() {
     fixExtrudeUVs(geo, TABLE_WIDTH, TABLE_DEPTH);
     return geo;
   }, [roundedShape, extrudeSettings]);
+
+  // Rim geometry: outer shell minus inner cutout
+  const rimShape = useMemo(() => createRimShape(
+    TABLE_WIDTH + rimWidth * 2, TABLE_DEPTH + rimWidth * 2, cornerRadius + rimWidth,
+    TABLE_WIDTH, TABLE_DEPTH, cornerRadius,
+  ), []);
+  const rimExtrudeSettings = useMemo(() => ({
+    depth: rimHeight,
+    bevelEnabled: true,
+    bevelThickness: 0.03,
+    bevelSize: 0.03,
+    bevelSegments: 2,
+  }), []);
+  const rimGeometry = useMemo(() => {
+    return new THREE.ExtrudeGeometry(rimShape, rimExtrudeSettings);
+  }, [rimShape, rimExtrudeSettings]);
 
   return (
     <group>
@@ -91,6 +137,23 @@ export function PlaySurface() {
           />
         </mesh>
       </RigidBody>
+
+      {/* Visible rim/bumper around table edge */}
+      <mesh
+        castShadow
+        receiveShadow
+        position={[0, 0.2 + rimHeight, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        geometry={rimGeometry}
+      >
+        <meshPhysicalMaterial
+          color="#2a1a0a"
+          roughness={0.35}
+          metalness={0.05}
+          clearcoat={0.6}
+          clearcoatRoughness={0.2}
+        />
+      </mesh>
 
       {/* Invisible tall wall colliders to contain dice */}
       {/* Back wall collider */}
