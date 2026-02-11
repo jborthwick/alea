@@ -147,7 +147,7 @@ export function PlaySurface() {
         geometry={rimGeometry}
       >
         <meshPhysicalMaterial
-          color="#2a1a0a"
+          color="#4a0e0e"
           roughness={0.35}
           metalness={0.05}
           clearcoat={0.6}
