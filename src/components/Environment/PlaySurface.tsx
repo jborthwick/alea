@@ -1,49 +1,9 @@
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useMemo } from 'react';
+import { useLoader } from '@react-three/fiber';
 import { TABLE_WIDTH, TABLE_DEPTH, CEILING_HEIGHT, PLAY_AREA_DEPTH } from '../../game/constants';
-
-// Create felt texture programmatically
-function createFeltTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d')!;
-
-  // Base green felt color
-  ctx.fillStyle = '#1a8c1a';
-  ctx.fillRect(0, 0, 256, 256);
-
-  // Add felt texture with directional fibers - optimized
-  const imageData = ctx.getImageData(0, 0, 256, 256);
-  const data = imageData.data;
-
-  // Pre-calculate random values for better performance
-  for (let i = 0; i < data.length; i += 4) {
-    const x = (i / 4) % 256;
-    const y = Math.floor((i / 4) / 256);
-
-    // Random noise
-    const noise = (Math.random() - 0.5) * 40;
-
-    // Directional fiber pattern (subtle diagonal lines) - tighter/smaller fibers
-    const fiber = Math.sin(x * 0.4 + y * 0.2) * 8;
-
-    const variation = noise + fiber;
-
-    data[i] = Math.max(0, Math.min(255, data[i] + variation));
-    data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + variation));
-    data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + variation));
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(2, 2);
-  return texture;
-}
+import tableRoosterImg from '../../images/table_rooster.jpg';
 
 // Create a rounded rectangle shape for the felt surface
 function createRoundedRectShape(width: number, depth: number, radius: number): THREE.Shape {
@@ -65,15 +25,40 @@ function createRoundedRectShape(width: number, depth: number, radius: number): T
   return shape;
 }
 
+// Fix UVs on an ExtrudeGeometry so the texture maps 0-1 across the surface
+function fixExtrudeUVs(geometry: THREE.ExtrudeGeometry, width: number, depth: number) {
+  const uv = geometry.attributes.uv;
+  const pos = geometry.attributes.position;
+  const normal = geometry.attributes.normal;
+  const hw = width / 2;
+  const hd = depth / 2;
+
+  for (let i = 0; i < uv.count; i++) {
+    const nz = normal.getZ(i);
+
+    // Top face (extruded face pointing in +Z after extrusion, before rotation)
+    if (nz > 0.5) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      uv.setXY(i, (x + hw) / width, (y + hd) / depth);
+    }
+    // Side faces and bottom - use a dark solid color region by mapping to edge
+    else {
+      uv.setXY(i, 0.0, 0.0);
+    }
+  }
+  uv.needsUpdate = true;
+}
+
 export function PlaySurface() {
-  const feltTexture = useMemo(() => createFeltTexture(), []);
+  const tableTexture = useLoader(THREE.TextureLoader, tableRoosterImg);
 
   const halfWidth = TABLE_WIDTH / 2;
   const halfDepth = TABLE_DEPTH / 2;
   const wallThickness = 0.3;
   const wallHalfThickness = wallThickness / 2;
 
-  const cornerRadius = 0.5;
+  const cornerRadius = 0.3;
   const roundedShape = useMemo(() => createRoundedRectShape(TABLE_WIDTH, TABLE_DEPTH, cornerRadius), []);
   const extrudeSettings = useMemo(() => ({
     depth: 0.4,
@@ -83,17 +68,26 @@ export function PlaySurface() {
     bevelSegments: 3,
   }), []);
 
+  const tableGeometry = useMemo(() => {
+    const geo = new THREE.ExtrudeGeometry(roundedShape, extrudeSettings);
+    fixExtrudeUVs(geo, TABLE_WIDTH, TABLE_DEPTH);
+    return geo;
+  }, [roundedShape, extrudeSettings]);
+
   return (
     <group>
       {/* Main felt surface with rounded corners */}
       <RigidBody type="fixed" position={[0, -0.2, 0]}>
         <CuboidCollider args={[halfWidth, 0.2, halfDepth]} />
-        <mesh receiveShadow position={[0, 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <extrudeGeometry args={[roundedShape, extrudeSettings]} />
-          <meshStandardMaterial
-            map={feltTexture}
-            roughness={0.9}
-            metalness={0}
+        <mesh receiveShadow position={[0, 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]} geometry={tableGeometry}>
+          <meshPhysicalMaterial
+            map={tableTexture}
+            roughness={0.4}
+            metalness={0.0}
+            clearcoat={0.4}
+            clearcoatRoughness={0.3}
+            envMapIntensity={0.6}
+            reflectivity={0.4}
           />
         </mesh>
       </RigidBody>

@@ -64,11 +64,11 @@ export const DICE_EDGE_RADIUS = 0.065;
  *
  * To add a new material preset, edit DICE_MATERIAL_PRESETS in DiceGeometry.ts
  */
-export const DICE_MATERIAL_STYLE = 'casino' as const;
+export const DICE_MATERIAL_STYLE = 'glossy' as const;
 
 // Play area (1:1 square format for easier asset creation)
-export const TABLE_WIDTH = 5;   // X dimension
-export const TABLE_DEPTH = 5;   // Z dimension (same as width for 1:1 ratio)
+export const TABLE_WIDTH = 5.5;   // X dimension
+export const TABLE_DEPTH = 5.5;   // Z dimension (same as width for 1:1 ratio)
 export const WALL_HEIGHT = 0.6;  // Visible rail height
 export const CEILING_HEIGHT = 4; // Invisible ceiling to contain dice
 

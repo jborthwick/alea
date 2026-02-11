@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Stats } from '@react-three/drei';
+import { Stats, Environment } from '@react-three/drei';
 import { Suspense } from 'react';
 import * as THREE from 'three';
 import { DiceGroup } from '../Dice/DiceGroup';
@@ -33,10 +33,11 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
         near: 0.1,
         far: 100,
       }}
-      style={{ background: 'rgb(34, 32, 26)' }}
+      style={{ background: 'rgb(18, 16, 12)' }}
     >
       {showFPS && <Stats showPanel={0} className="stats-panel" />}
       <Suspense fallback={null}>
+        <Environment preset="night" environmentIntensity={0.8} />
         <Physics gravity={[0, GRAVITY, 0]} timeStep="vary">
           <Lighting tiltX={tiltX} tiltY={tiltY} />
           <PlaySurface />

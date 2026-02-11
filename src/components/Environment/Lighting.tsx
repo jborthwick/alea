@@ -25,8 +25,8 @@ export function Lighting({ tiltX = 0, tiltY = 0 }: LightingProps) {
 
   return (
     <>
-      {/* Warm ambient light for casino atmosphere */}
-      <ambientLight intensity={0.4} color="#FFF5E6" />
+      {/* Warm ambient light - kept low for vignette contrast */}
+      <ambientLight intensity={0.2} color="#FFF5E6" />
 
       {/* Main directional light with shadows - from top right at lower angle for longer shadows */}
       <directionalLight
@@ -60,14 +60,16 @@ export function Lighting({ tiltX = 0, tiltY = 0 }: LightingProps) {
         distance={15}
       />
 
-      {/* Warm spotlight from above for focused table lighting */}
+      {/* Main overhead spotlight - tight cone with soft falloff for vignette effect */}
       <spotLight
-        position={[0, 8, 0]}
-        angle={Math.PI / 4}
-        penumbra={0.5}
-        intensity={0.5}
+        position={[0, 12, 0]}
+        angle={Math.PI / 6}
+        penumbra={1.0}
+        intensity={2.0}
         color="#FFFACD"
         castShadow={false}
+        decay={1.5}
+        target-position={[0, 0, 0]}
       />
     </>
   );
