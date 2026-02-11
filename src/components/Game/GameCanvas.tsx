@@ -44,7 +44,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
 
   return (
     <>
-      <Leva collapsed titleBar={{ title: 'Physics Debug' }} theme={{ sizes: { rootWidth: '380px', controlWidth: '200px' } }} />
+      <Leva hidden={import.meta.env.PROD} collapsed titleBar={{ title: 'Physics Debug' }} theme={{ sizes: { rootWidth: '380px', controlWidth: '200px' } }} />
       <Canvas
         shadows={{ type: THREE.VSMShadowMap }}
         camera={{
