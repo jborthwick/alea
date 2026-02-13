@@ -7,7 +7,9 @@ import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
-import { DICE_SIZE, DICE_MATERIAL_STYLE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, accentToHex } from '../../game/constants';
+import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS, accentToHex } from '../../game/constants';
+import type { DiceSetId } from '../../game/constants';
+import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
 
 interface DieProps {
@@ -24,7 +26,7 @@ const ACE_UP_EULER: [number, number, number] = [Math.PI, 0, 0];
 const ACE_UP_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(...ACE_UP_EULER));
 
 export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHold }: DieProps) {
-  const { mass, restitution, friction, angularDamping, linearDamping, diceSize } = usePhysicsDebug();
+  const { mass, restitution, friction, angularDamping, linearDamping, diceSize, diceMaterial, diceSet: debugDiceSet } = usePhysicsDebug();
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const [isSettled, setIsSettled] = useState(false);
@@ -53,9 +55,12 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   const die = dice.find((d) => d.id === id);
   const isHeld = die?.isHeld ?? false;
 
-  // Glow color from current table's accent
+  // Table config for glow color and dice set
   const tableId = selectedTable ?? 'owl';
-  const glowColor = accentToHex(TABLE_CONFIGS[tableId].accent);
+  const tableConfig = TABLE_CONFIGS[tableId];
+  const glowColor = accentToHex(tableConfig.accent);
+  const diceSet = (debugDiceSet || tableConfig.diceSet) as DiceSetId;
+  const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
 
   // Track position and rotation for glow overlay (updated each frame)
   const glowPositionRef = useRef<[number, number, number]>([0, 0, 0]);
@@ -109,8 +114,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Create geometry once
   const geometry = useMemo(() => createDiceGeometry(), []);
 
-  // Create materials once
-  const materials = useMemo(() => createDiceMaterials(DICE_MATERIAL_STYLE), []);
+  // Create materials (rebuild when dice set or material changes)
+  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet), [effectiveMaterial, diceSet]);
 
   // Pre-roll resting position near bottom of play area
   const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({

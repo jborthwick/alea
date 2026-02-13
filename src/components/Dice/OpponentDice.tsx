@@ -6,14 +6,17 @@ import { createDiceGeometry, createDiceMaterials } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
 import {
   DICE_SIZE,
-  DICE_MATERIAL_STYLE,
   OPPONENT_DICE_SIZE,
   OPPONENT_DICE_Y,
   OPPONENT_DICE_Z,
   OPPONENT_DICE_SPACING,
   TABLE_CONFIGS,
+  DICE_SET_MATERIALS,
   accentToHex,
 } from '../../game/constants';
+import type { DiceSetId } from '../../game/constants';
+import type { DiceMaterialPreset } from './DiceGeometry';
+import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
 
 // Map a CardValue to the quaternion that shows that face on top.
 // Based on faceDetection.ts: +Y=9, -Y=A, +X=10, -X=K, +Z=J, -Z=Q
@@ -33,16 +36,20 @@ function OpponentDie({ id }: { id: number }) {
   const die = useGameStore(state => state.opponentDice[id]);
   const opponentIsRolling = useGameStore(state => state.opponentIsRolling);
   const selectedTable = useGameStore(state => state.selectedTable);
+  const { diceMaterial, diceSet: debugDiceSet } = usePhysicsDebug();
   const scale = OPPONENT_DICE_SIZE / DICE_SIZE;
   const xPos = (id - 2) * OPPONENT_DICE_SPACING;
 
-  // Glow color from current table's accent
+  // Table config for glow color and dice set
   const tableId = selectedTable ?? 'owl';
-  const glowColor = accentToHex(TABLE_CONFIGS[tableId].accent);
+  const tableConfig = TABLE_CONFIGS[tableId];
+  const glowColor = accentToHex(tableConfig.accent);
+  const diceSet = (debugDiceSet || tableConfig.diceSet) as DiceSetId;
+  const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
 
   const geometry = useMemo(() => createDiceGeometry(), []);
-  // Create materials once
-  const materials = useMemo(() => createDiceMaterials(DICE_MATERIAL_STYLE), []);
+  // Create materials (rebuild when dice set or material changes)
+  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet), [effectiveMaterial, diceSet]);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;

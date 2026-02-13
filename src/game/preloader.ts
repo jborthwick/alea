@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { preloadDicePNGs } from '../components/Dice/DiceGeometry';
+import { preloadAllDiceSets } from '../components/Dice/DiceGeometry';
 import type { TableId } from './constants';
 
 // Static imports for Vite bundling
@@ -30,7 +30,7 @@ function loadTexture(url: string): Promise<THREE.Texture> {
 
 /**
  * Preload all game assets in parallel:
- * - 6 dice face PNGs (into DiceGeometry's image cache)
+ * - All dice set PNGs (into DiceGeometry's image cache)
  * - 5 table background JPGs (into textureCache)
  *
  * Call once at app startup before rendering any game content.
@@ -44,7 +44,7 @@ export async function preloadAllAssets(): Promise<void> {
   );
 
   await Promise.all([
-    preloadDicePNGs(),
+    preloadAllDiceSets(),
     ...tablePromises,
   ]);
 }

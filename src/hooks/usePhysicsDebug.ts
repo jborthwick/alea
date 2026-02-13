@@ -18,9 +18,21 @@ const DEFAULTS = {
   angularDamping: ANGULAR_DAMPING,
   linearDamping: LINEAR_DAMPING,
   diceSize: DICE_SIZE,
+  diceMaterial: '' as string, // empty = use dice set default
+  diceSet: '' as string,     // empty = use table default
 };
 
-export type PhysicsDebugValues = typeof DEFAULTS;
+export interface PhysicsDebugValues {
+  gravity: number;
+  mass: number;
+  restitution: number;
+  friction: number;
+  angularDamping: number;
+  linearDamping: number;
+  diceSize: number;
+  diceMaterial: string;
+  diceSet: string;
+}
 
 // Helper to create label with default value reference
 const d = (name: string, val: number) => `${name} [${val}]`;
@@ -54,7 +66,17 @@ export function usePhysicsDebug() {
     }),
     'Appearance': folder({
       diceSize: { value: DEFAULTS.diceSize, min: 0.3, max: 2, step: 0.05, label: d('Dice Size', DEFAULTS.diceSize) },
-      'Reset Appearance': button(() => { setRef.current?.(pick(['diceSize'])); }),
+      diceMaterial: {
+        value: DEFAULTS.diceMaterial,
+        options: { 'Set Default': '', 'Casino': 'casino', 'Glossy': 'glossy', 'Matte': 'matte', 'Pearlescent': 'pearlescent' },
+        label: 'Material',
+      },
+      diceSet: {
+        value: DEFAULTS.diceSet,
+        options: { 'Table Default': '', 'Alpha': 'alpha', 'Black Modern': 'blackmodern' },
+        label: 'Dice Set',
+      },
+      'Reset Appearance': button(() => { setRef.current?.(pick(['diceSize', 'diceMaterial', 'diceSet'])); }),
     }),
     'Reset All': button(() => { setRef.current?.(DEFAULTS); }),
     'Copy Values': button((get) => {

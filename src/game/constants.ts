@@ -37,6 +37,21 @@ export const HAND_NAMES: Record<HandRank, string> = {
 // Initial bankroll
 export const INITIAL_BANKROLL = 1000;
 
+// Dice set definitions
+export type DiceSetId = 'alpha' | 'blackmodern';
+
+// Canvas background fill per dice set (drawn before the PNG overlay)
+export const DICE_SET_BG_COLORS: Record<DiceSetId, string> = {
+  alpha: '#FAFAFA',
+  blackmodern: '#333333',
+};
+
+// Default material preset per dice set
+export const DICE_SET_MATERIALS: Record<DiceSetId, string> = {
+  alpha: 'casino',
+  blackmodern: 'pearlescent',
+};
+
 // Table definitions
 export type TableId = 'rooster' | 'bluejay' | 'martin' | 'parrot' | 'owl';
 
@@ -44,6 +59,7 @@ export interface TableConfig {
   id: TableId;
   name: string;
   bet: number;
+  diceSet: DiceSetId;   // Which dice art set to use
   accent: string;       // RGB triplet for --accent
   accentDark: string;   // RGB triplet for --accent-dark
   rimColor: string;     // Hex color for table rim
@@ -57,6 +73,7 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     id: 'rooster',
     name: 'Rooster',
     bet: 0,
+    diceSet: 'alpha',
     accent: '220, 50, 50',
     accentDark: '170, 30, 30',
     rimColor: '#4a0e0e',
@@ -68,6 +85,7 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     id: 'bluejay',
     name: 'Bluejay',
     bet: 10,
+    diceSet: 'alpha',
     accent: '70, 140, 220',
     accentDark: '40, 100, 180',
     rimColor: '#0e2a4a',
@@ -79,6 +97,7 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     id: 'martin',
     name: 'Martin',
     bet: 50,
+    diceSet: 'alpha',
     accent: '160, 90, 220',
     accentDark: '120, 60, 180',
     rimColor: '#2e0e4a',
@@ -90,6 +109,7 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     id: 'parrot',
     name: 'Parrot',
     bet: 100,
+    diceSet: 'alpha',
     accent: '70, 190, 100',
     accentDark: '40, 150, 70',
     rimColor: '#0e4a1a',
@@ -101,6 +121,7 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     id: 'owl',
     name: 'Owl',
     bet: 200,
+    diceSet: 'blackmodern',
     accent: '170, 170, 180',
     accentDark: '130, 130, 140',
     rimColor: '#2a2a2a',
@@ -159,19 +180,6 @@ export const LINEAR_DAMPING = 0.1;
 // Dice appearance
 export const DICE_SIZE = 0.70;
 export const DICE_EDGE_RADIUS = 0.075;
-
-/**
- * Dice material visual style preset
- *
- * Available options:
- * - 'casino': Standard casino dice (roughness: 0.4, metalness: 0.1)
- * - 'glossy': Glossy plastic finish with clearcoat (roughness: 0.2, clearcoat: 0.5)
- * - 'matte': Matte finish (roughness: 0.9, metalness: 0.0)
- * - 'pearlescent': Shiny/pearlescent with high clearcoat (roughness: 0.15, metalness: 0.3, clearcoat: 0.8)
- *
- * To add a new material preset, edit DICE_MATERIAL_PRESETS in DiceGeometry.ts
- */
-export const DICE_MATERIAL_STYLE = 'glossy' as const;
 
 // Play area (1:1 square format for easier asset creation)
 export const TABLE_WIDTH = 5.5;   // X dimension
