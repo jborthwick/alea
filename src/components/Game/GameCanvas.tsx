@@ -10,6 +10,7 @@ import { PlaySurface } from '../Environment/PlaySurface';
 import { Lighting } from '../Environment/Lighting';
 import { useGameStore } from '../../store/gameStore';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
+import { useLightingDebug } from '../../hooks/useLightingDebug';
 
 interface GameCanvasProps {
   rollTrigger: number;
@@ -21,12 +22,13 @@ interface GameCanvasProps {
 // Inner scene component that can use leva hooks inside Canvas
 function Scene({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasProps) {
   const { gravity } = usePhysicsDebug();
+  const lighting = useLightingDebug();
 
   return (
     <>
-      <Environment preset="night" environmentIntensity={0.8} />
+      <Environment preset="night" environmentIntensity={lighting.envIntensity} />
       <Physics gravity={[0, gravity, 0]} timeStep="vary">
-        <Lighting tiltX={tiltX} tiltY={tiltY} />
+        <Lighting tiltX={tiltX} tiltY={tiltY} debug={lighting} />
         <PlaySurface />
         <DiceGroup rollTrigger={rollTrigger} intensity={intensity} />
         <OpponentDiceGroup />
@@ -44,7 +46,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY }: GameCanvasP
 
   return (
     <>
-      <Leva hidden={import.meta.env.PROD} collapsed titleBar={{ title: 'Physics Debug' }} theme={{ sizes: { rootWidth: '380px', controlWidth: '200px' } }} />
+      <Leva hidden={import.meta.env.PROD} collapsed titleBar={{ title: 'Debug Panel' }} theme={{ sizes: { rootWidth: '380px', controlWidth: '200px' } }} />
       <Canvas
         shadows={{ type: THREE.VSMShadowMap }}
         camera={{

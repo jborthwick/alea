@@ -47,6 +47,9 @@ export interface TableConfig {
   accent: string;       // RGB triplet for --accent
   accentDark: string;   // RGB triplet for --accent-dark
   rimColor: string;     // Hex color for table rim
+  ambientColor: string; // Hex color for ambient light
+  fillColor: string;    // Hex color for fill light
+  spotColor: string;    // Hex color for spotlight
 }
 
 export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
@@ -57,6 +60,9 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     accent: '220, 50, 50',
     accentDark: '170, 30, 30',
     rimColor: '#4a0e0e',
+    ambientColor: '#FFE0D6',
+    fillColor: '#FFD0C0',
+    spotColor: '#FFDDCC',
   },
   bluejay: {
     id: 'bluejay',
@@ -65,6 +71,9 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     accent: '70, 140, 220',
     accentDark: '40, 100, 180',
     rimColor: '#0e2a4a',
+    ambientColor: '#D6E8FF',
+    fillColor: '#C4DEFF',
+    spotColor: '#CCE4FF',
   },
   martin: {
     id: 'martin',
@@ -73,6 +82,9 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     accent: '160, 90, 220',
     accentDark: '120, 60, 180',
     rimColor: '#2e0e4a',
+    ambientColor: '#EAD6FF',
+    fillColor: '#DEC4FF',
+    spotColor: '#E4CCFF',
   },
   parrot: {
     id: 'parrot',
@@ -81,6 +93,9 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     accent: '70, 190, 100',
     accentDark: '40, 150, 70',
     rimColor: '#0e4a1a',
+    ambientColor: '#D6FFE0',
+    fillColor: '#C4FFCC',
+    spotColor: '#CCFFDD',
   },
   owl: {
     id: 'owl',
@@ -89,6 +104,9 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     accent: '170, 170, 180',
     accentDark: '130, 130, 140',
     rimColor: '#2a2a2a',
+    ambientColor: '#FFF5E6',
+    fillColor: '#FFE4C4',
+    spotColor: '#FFFACD',
   },
 };
 
@@ -106,6 +124,29 @@ export function resetDefaultTheme() {
   root.setProperty('--accent', '242, 170, 29');
   root.setProperty('--accent-dark', '201, 138, 10');
 }
+
+// Lighting constants
+// Ambient
+export const AMBIENT_INTENSITY = 0.35;
+// Main directional (shadow-casting)
+export const MAIN_LIGHT_INTENSITY = 1.6;
+export const MAIN_LIGHT_COLOR = '#FFFAF0';
+export const MAIN_LIGHT_POS_X = 6;
+export const MAIN_LIGHT_POS_Y = 6;
+export const MAIN_LIGHT_POS_Z = -4;
+// Fill directional
+export const FILL_LIGHT_INTENSITY = 0.3;
+export const FILL_LIGHT_POS_X = -3;
+export const FILL_LIGHT_POS_Y = 8;
+export const FILL_LIGHT_POS_Z = -3;
+// Overhead spotlight (vignette)
+export const SPOT_INTENSITY = 2.0;
+export const SPOT_HEIGHT = 12;
+export const SPOT_ANGLE = Math.PI / 6;
+export const SPOT_PENUMBRA = 1.0;
+export const SPOT_DECAY = 1.5;
+// Environment
+export const ENV_INTENSITY = 0.8;
 
 // Physics constants
 export const GRAVITY = -35;
