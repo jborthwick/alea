@@ -3,7 +3,6 @@ import { GameCanvas } from './GameCanvas';
 import { GameUI } from './GameUI';
 import { useGameStore } from '../../store/gameStore';
 import { useShakeDetection } from '../../hooks/useShakeDetection';
-import { preloadDicePNGs } from '../Dice/DiceGeometry';
 import './Game.css';
 
 export function Game() {
@@ -11,17 +10,10 @@ export function Game() {
   const [rollIntensity, setRollIntensity] = useState(0.7);
   const [tiltX, setTiltX] = useState(0);
   const [tiltY, setTiltY] = useState(0);
-  const [svgsLoaded, setSvgsLoaded] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
 
   const rollDice = useGameStore((state) => state.rollDice);
   const isRolling = useGameStore((state) => state.isRolling);
-
-  // Preload PNGs on mount
-  useEffect(() => {
-    preloadDicePNGs().then(() => {
-      setSvgsLoaded(true);
-    });
-  }, []);
 
   // Handle roll action
   const handleRoll = useCallback(
@@ -61,22 +53,14 @@ export function Game() {
     };
   }, []);
 
-  // Show loading state until SVGs are loaded
-  if (!svgsLoaded) {
-    return (
-      <div className="game-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: 'rgb(var(--text))', fontSize: '24px' }}>Loading...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="game-container">
+    <div className={`game-container ${sceneReady ? 'game-container-ready' : ''}`}>
       <GameCanvas
         rollTrigger={rollTrigger}
         intensity={rollIntensity}
         tiltX={tiltX}
         tiltY={tiltY}
+        onReady={() => setSceneReady(true)}
       />
       <GameUI onRoll={handleRoll} />
     </div>

@@ -20,7 +20,8 @@ interface DieProps {
 }
 
 // Ace face up: -Y axis points up, so rotate PI on X
-const ACE_UP_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0));
+const ACE_UP_EULER: [number, number, number] = [Math.PI, 0, 0];
+const ACE_UP_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(...ACE_UP_EULER));
 
 export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHold }: DieProps) {
   const { mass, restitution, friction, angularDamping, linearDamping, diceSize } = usePhysicsDebug();
@@ -110,14 +111,6 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
 
   // Create materials once
   const materials = useMemo(() => createDiceMaterials(DICE_MATERIAL_STYLE), []);
-
-  // Generate a random initial rotation (stable per die, computed once)
-  // useState lazy initializer is the React-sanctioned way to run impure init code once
-  const [initialRotation] = useState<[number, number, number]>(() => [
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2,
-  ]);
 
   // Pre-roll resting position near bottom of play area
   const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({
@@ -338,7 +331,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     }
   });
 
-  const initialPosition: [number, number, number] = [(id - 2) * 0.9, 2.5, 0];
+  // Start at the pre-roll parking position (not mid-air) to avoid visual pop on load
+  const initialPosition: [number, number, number] = [preRollPosition.x, preRollPosition.y, preRollPosition.z];
 
   // Common mesh props for interactivity
   const interactiveProps = canHold
@@ -359,7 +353,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
       <RigidBody
         ref={rigidBodyRef}
         position={initialPosition}
-        rotation={initialRotation}
+        rotation={ACE_UP_EULER}
         colliders={false}
         restitution={restitution}
         friction={friction}
