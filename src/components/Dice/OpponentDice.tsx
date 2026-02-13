@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/gameStore';
 import { createDiceGeometry, createDiceMaterials } from './DiceGeometry';
+import { GlowOverlay } from './GlowOverlay';
 import {
   DICE_SIZE,
   DICE_MATERIAL_STYLE,
@@ -10,6 +11,8 @@ import {
   OPPONENT_DICE_Y,
   OPPONENT_DICE_Z,
   OPPONENT_DICE_SPACING,
+  TABLE_CONFIGS,
+  accentToHex,
 } from '../../game/constants';
 
 // Map a CardValue to the quaternion that shows that face on top.
@@ -29,15 +32,21 @@ function OpponentDie({ id }: { id: number }) {
   const targetQuatRef = useRef<THREE.Quaternion>(new THREE.Quaternion());
   const die = useGameStore(state => state.opponentDice[id]);
   const opponentIsRolling = useGameStore(state => state.opponentIsRolling);
-
+  const selectedTable = useGameStore(state => state.selectedTable);
   const scale = OPPONENT_DICE_SIZE / DICE_SIZE;
   const xPos = (id - 2) * OPPONENT_DICE_SPACING;
 
+  // Glow color from current table's accent
+  const tableId = selectedTable ?? 'owl';
+  const glowColor = accentToHex(TABLE_CONFIGS[tableId].accent);
+
   const geometry = useMemo(() => createDiceGeometry(), []);
-  const materials = useMemo(() => createDiceMaterials(die.isHeld, DICE_MATERIAL_STYLE), [die.isHeld]);
+  // Create materials once
+  const materials = useMemo(() => createDiceMaterials(DICE_MATERIAL_STYLE), []);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
+
     if (opponentIsRolling && !die.isHeld) {
       // Spin rapidly on multiple axes
       meshRef.current.rotation.x += delta * 12;
@@ -74,15 +83,24 @@ function OpponentDie({ id }: { id: number }) {
   });
 
   return (
-    <mesh
-      ref={meshRef}
-      position={[xPos, OPPONENT_DICE_Y, OPPONENT_DICE_Z]}
-      scale={[scale, scale, scale]}
-      geometry={geometry}
-      material={materials}
-      castShadow
-      receiveShadow
-    />
+    <>
+      <mesh
+        ref={meshRef}
+        position={[xPos, OPPONENT_DICE_Y, OPPONENT_DICE_Z]}
+        scale={[scale, scale, scale]}
+        geometry={geometry}
+        material={materials}
+        castShadow
+        receiveShadow
+      />
+      <GlowOverlay
+        position={[xPos, OPPONENT_DICE_Y, OPPONENT_DICE_Z]}
+        meshRef={meshRef}
+        color={glowColor}
+        visible={die.isHeld}
+        scaleFactor={OPPONENT_DICE_SIZE / DICE_SIZE}
+      />
+    </>
   );
 }
 

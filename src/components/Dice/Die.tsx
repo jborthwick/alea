@@ -6,7 +6,8 @@ import { useGameStore } from '../../store/gameStore';
 import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry } from './DiceGeometry';
-import { DICE_SIZE, DICE_MATERIAL_STYLE, TABLE_WIDTH, TABLE_DEPTH } from '../../game/constants';
+import { GlowOverlay } from './GlowOverlay';
+import { DICE_SIZE, DICE_MATERIAL_STYLE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, accentToHex } from '../../game/constants';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
 
 interface DieProps {
@@ -47,8 +48,17 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   const dice = useGameStore((state) => state.dice);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const rollsRemaining = useGameStore((state) => state.rollsRemaining);
+  const selectedTable = useGameStore((state) => state.selectedTable);
   const die = dice.find((d) => d.id === id);
   const isHeld = die?.isHeld ?? false;
+
+  // Glow color from current table's accent
+  const tableId = selectedTable ?? 'owl';
+  const glowColor = accentToHex(TABLE_CONFIGS[tableId].accent);
+
+  // Track position and rotation for glow overlay (updated each frame)
+  const glowPositionRef = useRef<[number, number, number]>([0, 0, 0]);
+  const glowRotationRef = useRef<[number, number, number, number]>([0, 0, 0, 1]);
 
   // After third roll, all dice should move to hold tray
   const shouldBeInHoldTray = (gamePhase === 'rolling' || gamePhase === 'scoring') && rollsRemaining === 0;
@@ -98,8 +108,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Create geometry once
   const geometry = useMemo(() => createDiceGeometry(), []);
 
-  // Create materials based on held state - memoize to prevent constant recreation
-  const materials = useMemo(() => createDiceMaterials(isHeld, DICE_MATERIAL_STYLE), [isHeld]);
+  // Create materials once
+  const materials = useMemo(() => createDiceMaterials(DICE_MATERIAL_STYLE), []);
 
   // Generate a random initial rotation (stable per die, computed once)
   // useState lazy initializer is the React-sanctioned way to run impure init code once
@@ -167,6 +177,12 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   useFrame((_, delta) => {
     const rb = rigidBodyRef.current;
     if (!rb) return;
+
+    // Track position and rotation for glow overlay
+    const rbPos = rb.translation();
+    glowPositionRef.current = [rbPos.x, rbPos.y, rbPos.z];
+    const rbRot = rb.rotation();
+    glowRotationRef.current = [rbRot.x, rbRot.y, rbRot.z, rbRot.w];
 
     // Update physics properties from debug sliders (Rapier doesn't react to prop changes)
     rb.setLinearDamping(linearDamping);
@@ -339,27 +355,35 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
 
   // Always render the RigidBody — never unmount it
   return (
-    <RigidBody
-      ref={rigidBodyRef}
-      position={initialPosition}
-      rotation={initialRotation}
-      colliders={false}
-      restitution={restitution}
-      friction={friction}
-      angularDamping={angularDamping}
-      linearDamping={linearDamping}
-      mass={mass}
-    >
-      <CuboidCollider args={[DICE_SIZE / 2, DICE_SIZE / 2, DICE_SIZE / 2]} />
-      <mesh
-        ref={meshRef}
-        scale={hoverScale}
-        geometry={geometry}
-        material={materials}
-        castShadow
-        receiveShadow
-        {...interactiveProps}
+    <>
+      <RigidBody
+        ref={rigidBodyRef}
+        position={initialPosition}
+        rotation={initialRotation}
+        colliders={false}
+        restitution={restitution}
+        friction={friction}
+        angularDamping={angularDamping}
+        linearDamping={linearDamping}
+        mass={mass}
+      >
+        <CuboidCollider args={[DICE_SIZE / 2, DICE_SIZE / 2, DICE_SIZE / 2]} />
+        <mesh
+          ref={meshRef}
+          scale={hoverScale}
+          geometry={geometry}
+          material={materials}
+          castShadow
+          receiveShadow
+          {...interactiveProps}
+        />
+      </RigidBody>
+      <GlowOverlay
+        positionRef={glowPositionRef}
+        rotationRef={glowRotationRef}
+        color={glowColor}
+        visible={isHeld || shouldBeInHoldTray}
       />
-    </RigidBody>
+    </>
   );
 }

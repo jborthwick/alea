@@ -202,6 +202,15 @@ export const HAND_RANK_VALUES: Record<HandRank, number> = {
   'high-card': 1,
 };
 
+// Held dice outline overlay
+export const GLOW_OVERLAY_OPACITY = 0.85;
+
+// Convert table accent RGB triplet (e.g. '220, 50, 50') to hex color string
+export function accentToHex(accent: string): string {
+  const [r, g, b] = accent.split(',').map(s => parseInt(s.trim()));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 // Opponent dice layout
 export const OPPONENT_DICE_SIZE = 0.55;  // Increased from 0.45 for better visibility
 export const OPPONENT_DICE_Y = 0.3;

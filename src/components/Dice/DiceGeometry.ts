@@ -115,15 +115,14 @@ const imageCache: Record<string, HTMLImageElement> = {};
 // Create texture for dice faces from PNG files
 export function createDiceTexture(
   value: string,
-  isHeld: boolean = false
 ): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
 
-  // Background - cream/ivory color for casino dice
-  ctx.fillStyle = isHeld ? '#FFE4B5' : '#FFFAF0';
+  // Background - near-white for casino dice
+  ctx.fillStyle = '#FAFAFA';
   ctx.fillRect(0, 0, 512, 512);
 
   // Draw cached PNG if available
@@ -161,14 +160,13 @@ export const FACE_VALUES = ['10', 'K', '9', 'A', 'J', 'Q'];
 
 // Create materials for all six faces with specified material preset
 export function createDiceMaterials(
-  isHeld: boolean = false,
-  preset: DiceMaterialPreset = 'casino'
+  preset: DiceMaterialPreset = 'casino',
 ): THREE.Material[] {
   const materialProps = DICE_MATERIAL_PRESETS[preset];
   const useClearcoat = materialProps.clearcoat !== undefined;
 
   return FACE_VALUES.map((value) => {
-    const texture = createDiceTexture(value, isHeld);
+    const texture = createDiceTexture(value);
 
     // Use MeshPhysicalMaterial if clearcoat is needed, otherwise MeshStandardMaterial
     if (useClearcoat) {
