@@ -7,10 +7,11 @@ import { evaluateHand, compareHands } from '../game/handEvaluator';
 import { decideHolds, rollOpponentValues } from '../game/opponentAI';
 import {
   INITIAL_BANKROLL,
-  MIN_BET,
-  MAX_BET,
-  BET_INCREMENT,
+  TABLE_CONFIGS,
+  applyTableTheme,
+  resetDefaultTheme,
 } from '../game/constants';
+import type { TableId } from '../game/constants';
 
 function createInitialDice(): DieState[] {
   return Array.from({ length: 5 }, (_, i) => ({
@@ -37,10 +38,9 @@ export const useGameStore = create<GameState>()(
       dice: createInitialDice(),
       rollsRemaining: 3,
       isRolling: false,
+      selectedTable: null,
       bankroll: INITIAL_BANKROLL,
-      currentBet: MIN_BET,
-      minBet: MIN_BET,
-      maxBet: MAX_BET,
+      currentBet: 0,
       gamePhase: 'betting',
       currentHand: null,
       lastWin: 0,
@@ -56,6 +56,48 @@ export const useGameStore = create<GameState>()(
       roundOutcome: null,
 
       // Actions
+      selectTable: (tableId: TableId) => {
+        const config = TABLE_CONFIGS[tableId];
+        applyTableTheme(tableId);
+        set({
+          selectedTable: tableId,
+          currentBet: config.bet,
+          gamePhase: 'betting',
+        });
+      },
+
+      returnToLobby: () => {
+        const state = get();
+        resetDefaultTheme();
+
+        const resetDice = state.dice.map((d) => ({
+          ...d,
+          value: 'A' as CardValue,
+          isHeld: false,
+        }));
+        const resetOpponentDice = state.opponentDice.map((d) => ({
+          ...d,
+          value: 'A' as CardValue,
+          isHeld: false,
+        }));
+
+        set({
+          selectedTable: null,
+          dice: resetDice,
+          rollsRemaining: 3,
+          isRolling: false,
+          gamePhase: 'betting',
+          currentHand: null,
+          lastWin: 0,
+          currentBet: 0,
+          opponentDice: resetOpponentDice,
+          pendingOpponentDice: null,
+          opponentHand: null,
+          opponentIsRolling: false,
+          roundOutcome: null,
+        });
+      },
+
       rollDice: () => {
         const state = get();
 
@@ -64,7 +106,8 @@ export const useGameStore = create<GameState>()(
 
         // If in betting phase, deduct bet and move to rolling phase
         if (state.gamePhase === 'betting') {
-          if (state.bankroll < state.currentBet) return;
+          // For paid tables, check bankroll
+          if (state.currentBet > 0 && state.bankroll < state.currentBet) return;
           set({
             bankroll: state.bankroll - state.currentBet,
             gamePhase: 'rolling',
@@ -163,33 +206,6 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      setBet: (amount: number) => {
-        const state = get();
-        if (state.gamePhase !== 'betting') return;
-        const clampedBet = Math.max(
-          state.minBet,
-          Math.min(state.maxBet, Math.min(amount, state.bankroll))
-        );
-        set({ currentBet: clampedBet });
-      },
-
-      increaseBet: () => {
-        const state = get();
-        if (state.gamePhase !== 'betting') return;
-        const newBet = Math.min(
-          state.maxBet,
-          Math.min(state.currentBet + BET_INCREMENT, state.bankroll)
-        );
-        set({ currentBet: newBet });
-      },
-
-      decreaseBet: () => {
-        const state = get();
-        if (state.gamePhase !== 'betting') return;
-        const newBet = Math.max(state.minBet, state.currentBet - BET_INCREMENT);
-        set({ currentBet: newBet });
-      },
-
       newRound: () => {
         const state = get();
 
@@ -212,8 +228,6 @@ export const useGameStore = create<GameState>()(
           gamePhase: 'betting',
           currentHand: null,
           lastWin: 0,
-          // Adjust bet if bankroll is too low
-          currentBet: Math.min(state.currentBet, state.bankroll, state.maxBet),
           // Reset opponent state
           opponentDice: resetOpponentDice,
           pendingOpponentDice: null,
@@ -237,6 +251,8 @@ export const useGameStore = create<GameState>()(
 
       resetBankroll: () => {
         const state = get();
+        resetDefaultTheme();
+
         const resetDice = state.dice.map((d) => ({
           ...d,
           value: 'A' as CardValue,
@@ -249,11 +265,12 @@ export const useGameStore = create<GameState>()(
         }));
 
         set({
+          selectedTable: null,
           dice: resetDice,
           rollsRemaining: 3,
           isRolling: false,
           bankroll: INITIAL_BANKROLL,
-          currentBet: MIN_BET,
+          currentBet: 0,
           gamePhase: 'betting',
           currentHand: null,
           lastWin: 0,
@@ -269,12 +286,19 @@ export const useGameStore = create<GameState>()(
       name: 'dice-poker-storage',
       partialize: (state) => ({
         bankroll: state.bankroll,
-        currentBet: state.currentBet,
+        selectedTable: state.selectedTable,
         soundEnabled: state.soundEnabled,
         showFPS: state.showFPS,
         // Note: shakeEnabled is intentionally NOT persisted because iOS Safari
         // doesn't persist DeviceMotion permission across page reloads
       }),
+      onRehydrateStorage: () => (state) => {
+        // Re-apply table theme after hydration
+        if (state?.selectedTable) {
+          applyTableTheme(state.selectedTable);
+          state.currentBet = TABLE_CONFIGS[state.selectedTable].bet;
+        }
+      },
     }
   )
 );

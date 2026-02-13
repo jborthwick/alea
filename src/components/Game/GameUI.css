@@ -32,6 +32,58 @@
   flex-wrap: wrap;
 }
 
+/* Top left group (back button + table info) */
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.back-button {
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.25rem;
+  color: rgb(var(--text));
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-button:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.table-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.table-info-name {
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: rgb(var(--accent));
+  line-height: 1.2;
+}
+
+.table-info-bet {
+  font-size: 0.7rem;
+  color: rgba(var(--text), 0.6);
+  line-height: 1.2;
+}
+
+/* Top right group (bankroll + buttons) */
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 /* Top button group */
 .top-buttons {
   display: flex;
@@ -263,17 +315,6 @@
 
 /* Very small screens */
 @media (max-width: 400px) {
-  .bet-amount {
-    font-size: 1.25rem;
-    min-width: 60px;
-  }
-
-  .bet-button {
-    width: 32px;
-    height: 32px;
-    font-size: 1.25rem;
-  }
-
   .chip-amount {
     font-size: 1.25rem;
   }

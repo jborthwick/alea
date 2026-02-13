@@ -1,0 +1,126 @@
+.table-select {
+  width: 100vw;
+  height: 100dvh;
+  background: rgb(var(--bg));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.5rem;
+  padding-top: max(2rem, env(safe-area-inset-top));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  font-family: 'Georgia', serif;
+  overflow-y: auto;
+}
+
+.table-select-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.table-select-title {
+  font-size: 3rem;
+  font-weight: bold;
+  letter-spacing: 0.3em;
+  color: rgb(var(--accent));
+  margin: 0;
+  text-shadow: 0 0 20px rgba(var(--accent), 0.3);
+}
+
+.table-select-bankroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.table-select-bankroll-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgb(var(--accent));
+  text-transform: uppercase;
+}
+
+.table-select-bankroll-amount {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: rgb(var(--win));
+  text-shadow: 0 0 10px rgba(var(--win), 0.3);
+}
+
+.table-select-subtitle {
+  font-size: 0.875rem;
+  letter-spacing: 0.15em;
+  color: rgba(var(--text), 0.5);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.table-select-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.table-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  border: 2px solid rgba(var(--card-accent), 0.6);
+  background: rgba(var(--card-accent), 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Georgia', serif;
+}
+
+.table-card:hover:not(:disabled) {
+  background: rgba(var(--card-accent), 0.15);
+  border-color: rgb(var(--card-accent));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(var(--card-accent), 0.25);
+}
+
+.table-card:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.table-card-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.table-card-name {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: rgb(var(--text));
+}
+
+.table-card-bet {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: rgb(var(--card-accent));
+}
+
+@media (max-width: 768px) {
+  .table-select {
+    padding: 1.5rem 1rem;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+
+  .table-select-title {
+    font-size: 2.5rem;
+  }
+
+  .table-card {
+    padding: 1rem 1.25rem;
+  }
+}

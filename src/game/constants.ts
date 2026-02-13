@@ -37,10 +37,75 @@ export const HAND_NAMES: Record<HandRank, string> = {
 // Initial bankroll
 export const INITIAL_BANKROLL = 1000;
 
-// Bet limits
-export const MIN_BET = 10;
-export const MAX_BET = 500;
-export const BET_INCREMENT = 10;
+// Table definitions
+export type TableId = 'rooster' | 'bluejay' | 'martin' | 'parrot' | 'owl';
+
+export interface TableConfig {
+  id: TableId;
+  name: string;
+  bet: number;
+  accent: string;       // RGB triplet for --accent
+  accentDark: string;   // RGB triplet for --accent-dark
+  rimColor: string;     // Hex color for table rim
+}
+
+export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
+  rooster: {
+    id: 'rooster',
+    name: 'Rooster',
+    bet: 0,
+    accent: '220, 50, 50',
+    accentDark: '170, 30, 30',
+    rimColor: '#4a0e0e',
+  },
+  bluejay: {
+    id: 'bluejay',
+    name: 'Bluejay',
+    bet: 10,
+    accent: '70, 140, 220',
+    accentDark: '40, 100, 180',
+    rimColor: '#0e2a4a',
+  },
+  martin: {
+    id: 'martin',
+    name: 'Martin',
+    bet: 50,
+    accent: '160, 90, 220',
+    accentDark: '120, 60, 180',
+    rimColor: '#2e0e4a',
+  },
+  parrot: {
+    id: 'parrot',
+    name: 'Parrot',
+    bet: 100,
+    accent: '70, 190, 100',
+    accentDark: '40, 150, 70',
+    rimColor: '#0e4a1a',
+  },
+  owl: {
+    id: 'owl',
+    name: 'Owl',
+    bet: 200,
+    accent: '170, 170, 180',
+    accentDark: '130, 130, 140',
+    rimColor: '#2a2a2a',
+  },
+};
+
+export const TABLE_ORDER: TableId[] = ['rooster', 'bluejay', 'martin', 'parrot', 'owl'];
+
+export function applyTableTheme(tableId: TableId) {
+  const config = TABLE_CONFIGS[tableId];
+  const root = document.documentElement.style;
+  root.setProperty('--accent', config.accent);
+  root.setProperty('--accent-dark', config.accentDark);
+}
+
+export function resetDefaultTheme() {
+  const root = document.documentElement.style;
+  root.setProperty('--accent', '242, 170, 29');
+  root.setProperty('--accent-dark', '201, 138, 10');
+}
 
 // Physics constants
 export const GRAVITY = -35;

@@ -1,4 +1,5 @@
 import { Vector3, Quaternion } from 'three';
+import type { TableId } from '../game/constants';
 
 export type CardValue = '9' | '10' | 'J' | 'Q' | 'K' | 'A';
 
@@ -52,11 +53,10 @@ export interface GameState {
   opponentIsRolling: boolean;
   roundOutcome: RoundOutcome | null;
 
-  // Betting
+  // Table & Betting
+  selectedTable: TableId | null;
   bankroll: number;
   currentBet: number;
-  minBet: number;
-  maxBet: number;
 
   // Game state
   gamePhase: GamePhase;
@@ -69,11 +69,10 @@ export interface GameState {
   showFPS: boolean;
 
   // Actions
+  selectTable: (tableId: TableId) => void;
+  returnToLobby: () => void;
   rollDice: () => void;
   toggleHold: (id: number) => void;
-  setBet: (amount: number) => void;
-  increaseBet: () => void;
-  decreaseBet: () => void;
   newRound: () => void;
   toggleSound: () => void;
   toggleShake: () => void;

@@ -2,8 +2,22 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useMemo } from 'react';
 import { useLoader } from '@react-three/fiber';
-import { TABLE_WIDTH, TABLE_DEPTH, CEILING_HEIGHT, PLAY_AREA_DEPTH } from '../../game/constants';
+import { TABLE_WIDTH, TABLE_DEPTH, CEILING_HEIGHT, PLAY_AREA_DEPTH, TABLE_CONFIGS } from '../../game/constants';
+import type { TableId } from '../../game/constants';
+import { useGameStore } from '../../store/gameStore';
 import tableRoosterImg from '../../images/table_rooster.jpg';
+import tableBluejayImg from '../../images/table_bluejay.jpg';
+import tableMartinImg from '../../images/table_martin.jpg';
+import tableParrotImg from '../../images/table_parrot.jpg';
+import tableOwlImg from '../../images/table_owl.jpg';
+
+const TABLE_IMAGES: Record<TableId, string> = {
+  rooster: tableRoosterImg,
+  bluejay: tableBluejayImg,
+  martin: tableMartinImg,
+  parrot: tableParrotImg,
+  owl: tableOwlImg,
+};
 
 // Create a rounded rectangle shape for the felt surface
 function createRoundedRectShape(width: number, depth: number, radius: number): THREE.Shape {
@@ -78,7 +92,11 @@ function createRimShape(
 }
 
 export function PlaySurface() {
-  const tableTexture = useLoader(THREE.TextureLoader, tableRoosterImg);
+  const selectedTable = useGameStore((state) => state.selectedTable);
+  const tableId = selectedTable ?? 'rooster';
+  const tableImage = TABLE_IMAGES[tableId];
+  const rimColor = TABLE_CONFIGS[tableId].rimColor;
+  const tableTexture = useLoader(THREE.TextureLoader, tableImage);
 
   const halfWidth = TABLE_WIDTH / 2;
   const halfDepth = TABLE_DEPTH / 2;
@@ -147,7 +165,7 @@ export function PlaySurface() {
         geometry={rimGeometry}
       >
         <meshPhysicalMaterial
-          color="#4a0e0e"
+          color={rimColor}
           roughness={0.35}
           metalness={0.05}
           clearcoat={0.6}

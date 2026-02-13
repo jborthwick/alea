@@ -1,13 +1,5 @@
 /* UI Components Styles - Classic Casino Theme */
 
-.betting-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.bet-label,
 .chip-label,
 .roll-label {
   font-size: 0.75rem;
@@ -15,46 +7,6 @@
   letter-spacing: 0.1em;
   color: rgb(var(--accent));
   text-transform: uppercase;
-}
-
-.bet-amount-container {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.bet-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid rgb(var(--accent));
-  background: rgba(0, 0, 0, 0.4);
-  color: rgb(var(--accent));
-  font-size: 1.5rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bet-button:hover:not(:disabled) {
-  background: rgb(var(--accent));
-  color: rgb(var(--text-on-accent));
-}
-
-.bet-button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.bet-amount {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: rgb(var(--text));
-  min-width: 80px;
-  text-align: center;
 }
 
 .chip-display {
