@@ -15,14 +15,14 @@ A modern dice poker game inspired by Motion X Poker for iPhone, featuring realis
 ## Project Structure
 ```
 src/
-├── App.tsx              # Root component
+├── App.tsx              # Root component (routes between TableSelect lobby and Game)
 ├── main.tsx             # Entry point
 ├── index.css            # Global styles + CSS custom properties (theme colors)
 ├── components/
 │   ├── Dice/            # Die.tsx, DiceGroup.tsx, DiceGeometry.ts, OpponentDice.tsx
 │   ├── Environment/     # PlaySurface.tsx, Lighting.tsx
 │   ├── Game/            # Game.tsx, GameCanvas.tsx, GameUI.tsx (+ Game.css, GameUI.css)
-│   └── UI/              # BettingControls, ChipDisplay, HandResult, PayoutTable, RollCounter, SettingsPanel (+ UI.css, SettingsPanel.css)
+│   └── UI/              # TableSelect, ChipDisplay, HandResult, PayoutTable, RollCounter, SettingsPanel (+ TableSelect.css, UI.css, SettingsPanel.css)
 ├── game/                # constants.ts, handEvaluator.ts, opponentAI.ts
 ├── hooks/               # useAudio.ts, useHaptics.ts, useShakeDetection.ts, usePhysicsDebug.ts
 ├── images/              # Dice face textures (dice_set_alpha_*.png), suit SVGs, table felt images (table_*.jpg)
@@ -64,14 +64,20 @@ src/
 - Maps dice orientation to card values (9, 10, J, Q, K, A)
 - Inverse quaternion mapping in `OpponentDice.tsx` to display specific values face-up
 
+### Table Selection & Theming
+- Lobby screen (`TableSelect.tsx`) shown when `selectedTable` is `null`; selecting a table enters the game
+- 5 tables defined in `TABLE_CONFIGS` in `constants.ts`: Rooster (free/$0, red), Bluejay ($10, blue), Martin ($50, purple), Parrot ($100, green), Owl ($200, gray)
+- Each table has: fixed bet amount, accent color (RGB triplet), accent-dark color, rim color (hex), and felt image
+- `applyTableTheme(tableId)` sets `--accent` and `--accent-dark` CSS custom properties on `document.documentElement`; `resetDefaultTheme()` restores lobby gold theme
+- `PlaySurface.tsx` dynamically selects the felt texture and rim color from `TABLE_CONFIGS` based on `selectedTable`
+- `selectedTable` is persisted to localStorage; theme is re-applied on hydration via `onRehydrateStorage`
+- `returnToLobby()` resets game state and returns to table selection; `resetBankroll()` also returns to lobby
+
 ### CSS Architecture
 - Global theme colors defined as CSS custom properties in `src/index.css` (e.g., `--bg`, `--accent`, `--win`, `--lose`)
 - Colors stored as raw RGB triplets for alpha compositing: `var(--accent)` → use as `rgb(var(--accent))` or `rgba(var(--accent), 0.5)`
-- Component CSS co-located with components: `Game.css`, `GameUI.css`, `UI.css`, `SettingsPanel.css`
-
-### Table Felt Images
-- Table felt textures live in `src/images/table_*.jpg` (rooster, bluejay, martin, owl, parrot)
-- Currently `PlaySurface.tsx` imports `table_rooster.jpg` directly — swap the import to change the felt
+- `--accent` and `--accent-dark` are overridden dynamically per table via JS (see `applyTableTheme`)
+- Component CSS co-located with components: `Game.css`, `GameUI.css`, `UI.css`, `SettingsPanel.css`, `TableSelect.css`
 
 ### Audio & Haptics
 - Procedurally generated sounds (no external audio files)
@@ -118,13 +124,14 @@ Deployed to GitHub Pages via GitHub Actions. The workflow in `.github/workflows/
 - Click/tap dice to hold after first roll
 - Poker hands: 5-of-a-kind down to high card
 - Best hand wins the pot (2x bet); same rank = push
-- Betting with virtual chips, bankroll persisted to localStorage
+- Select a table from the lobby to set your bet (Rooster is free, others cost $10–$200)
+- Shared bankroll persisted to localStorage; tables disabled when bankroll is insufficient
 
 ## Working with the Codebase
 
 ### Key Files to Read First
 - `src/store/gameStore.ts` - Central state management, all game actions live here
-- `src/game/constants.ts` - Physics tuning, table dimensions, timing values
+- `src/game/constants.ts` - Table definitions (TABLE_CONFIGS), physics tuning, table dimensions, timing values
 - `src/components/Dice/DiceGroup.tsx` - Orchestrates dice rolling and settlement detection
 - `src/game/opponentAI.ts` - AI hold strategy and opponent dice value generation
 
@@ -149,6 +156,12 @@ Edit constants in `src/game/constants.ts`:
 1. Add generation function in `src/hooks/useAudio.ts` (sounds are procedurally generated)
 2. Add to the `sounds` object returned by the hook
 3. Call via `sounds.yourSound.play()` from components
+
+**Adding a new table:**
+1. Add felt image to `src/images/table_<name>.jpg`
+2. Add entry to `TABLE_CONFIGS` in `constants.ts` (id, name, bet, accent, accentDark, rimColor)
+3. Add id to the `TableId` type union and `TABLE_ORDER` array
+4. Import the image in `PlaySurface.tsx` and add to `TABLE_IMAGES` map
 
 **Modifying game state:**
 All state changes go through Zustand actions in `gameStore.ts`. Pattern:
