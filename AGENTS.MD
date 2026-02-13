@@ -15,16 +15,20 @@ A modern dice poker game inspired by Motion X Poker for iPhone, featuring realis
 ## Project Structure
 ```
 src/
+├── App.tsx              # Root component
+├── main.tsx             # Entry point
+├── index.css            # Global styles + CSS custom properties (theme colors)
 ├── components/
-│   ├── Dice/           # Die.tsx, DiceGroup.tsx, DiceGeometry.ts, OpponentDice.tsx
-│   ├── Environment/    # PlaySurface.tsx, Lighting.tsx
-│   ├── Game/           # Game.tsx, GameCanvas.tsx, GameUI.tsx
-│   └── UI/             # BettingControls, ChipDisplay, HandResult, PayoutTable, RollCounter, SettingsPanel
-├── game/               # constants.ts, handEvaluator.ts, opponentAI.ts
-├── hooks/              # useAudio.ts, useHaptics.ts, useShakeDetection.ts
-├── physics/            # faceDetection.ts, impulseCalculator.ts
-├── store/              # gameStore.ts (Zustand)
-└── types/              # game.ts
+│   ├── Dice/            # Die.tsx, DiceGroup.tsx, DiceGeometry.ts, OpponentDice.tsx
+│   ├── Environment/     # PlaySurface.tsx, Lighting.tsx
+│   ├── Game/            # Game.tsx, GameCanvas.tsx, GameUI.tsx (+ Game.css, GameUI.css)
+│   └── UI/              # BettingControls, ChipDisplay, HandResult, PayoutTable, RollCounter, SettingsPanel (+ UI.css, SettingsPanel.css)
+├── game/                # constants.ts, handEvaluator.ts, opponentAI.ts
+├── hooks/               # useAudio.ts, useHaptics.ts, useShakeDetection.ts, usePhysicsDebug.ts
+├── images/              # Dice face textures (dice_set_alpha_*.png), suit SVGs, table felt images (table_*.jpg)
+├── physics/             # faceDetection.ts, impulseCalculator.ts
+├── store/               # gameStore.ts (Zustand)
+└── types/               # game.ts
 ```
 
 ## Key Implementation Details
@@ -60,6 +64,15 @@ src/
 - Maps dice orientation to card values (9, 10, J, Q, K, A)
 - Inverse quaternion mapping in `OpponentDice.tsx` to display specific values face-up
 
+### CSS Architecture
+- Global theme colors defined as CSS custom properties in `src/index.css` (e.g., `--bg`, `--accent`, `--win`, `--lose`)
+- Colors stored as raw RGB triplets for alpha compositing: `var(--accent)` → use as `rgb(var(--accent))` or `rgba(var(--accent), 0.5)`
+- Component CSS co-located with components: `Game.css`, `GameUI.css`, `UI.css`, `SettingsPanel.css`
+
+### Table Felt Images
+- Table felt textures live in `src/images/table_*.jpg` (rooster, bluejay, martin, owl, parrot)
+- Currently `PlaySurface.tsx` imports `table_rooster.jpg` directly — swap the import to change the felt
+
 ### Audio & Haptics
 - Procedurally generated sounds (no external audio files)
 - Sounds: roll, collision, hold click, win, lose
@@ -83,7 +96,8 @@ src/
 ## Commands
 ```bash
 npm run dev      # Start development server (http://localhost:5173)
-npm run build    # Build for production
+npm run build    # TypeScript check + Vite build for production
+npm run lint     # ESLint check
 npm run preview  # Preview production build
 ```
 
@@ -144,6 +158,9 @@ yourAction: () => set((state) => ({ ...changes }))
 
 **CRITICAL when modifying dice array:** Use `.map()` to reset dice values/holds on existing objects. NEVER use `createInitialDice()` during gameplay as it recreates the array and causes React to unmount/remount Die components (triggering Rapier crashes). See `newRound()` and `resetBankroll()` in gameStore.ts for correct pattern.
 
+**Using the physics debug panel (Leva):**
+`usePhysicsDebug.ts` exposes a Leva GUI for live-tuning gravity, mass, restitution, friction, damping, and dice size. "Copy Values" button copies tuned constants to clipboard for pasting into `constants.ts`.
+
 ### Development Gotchas
 - **CRITICAL - RigidBody lifecycle:** Die components use always-mounted `<RigidBody>` that NEVER unmounts during gameplay. The `useFrame` hook parks dice imperatively by setting position/rotation when not physics-active. NEVER use conditional rendering that unmounts RigidBody (causes Rapier WASM null pointer errors). See Die.tsx:68-72 for held position constants, Die.tsx:115-129 for parking logic.
 - **Roll completion logic:** The `finishRoll()` function uses refs to prevent double-firing. If modifying roll logic, ensure `finishRollCalledForTrigger` ref is properly managed.
@@ -160,3 +177,4 @@ yourAction: () => set((state) => ({ ...changes }))
 - Dice may need a moment to settle on first load
 - Shake detection requires permission on iOS - must be re-enabled each page load (iOS limitation)
 - DeviceMotion API requires HTTPS (won't work on local network without SSL)
+- Theme color mismatch: `index.html` meta tag uses `#12100c`, PWA manifest in `vite.config.ts` uses `#1a1a2e` — keep in sync if changing theme
