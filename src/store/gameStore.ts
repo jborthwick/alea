@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Vector3, Quaternion } from 'three';
@@ -305,23 +305,14 @@ export const useGameStore = create<GameState>()(
 
 // Hook to check if store has been hydrated from localStorage
 export const useStoreHydrated = () => {
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    // Check if already hydrated
-    const unsubFinishHydration = useGameStore.persist.onFinishHydration(() => {
-      setHydrated(true);
-    });
-
-    // If rehydration already happened before this component mounted
-    if (useGameStore.persist.hasHydrated()) {
-      setHydrated(true);
-    }
-
-    return () => {
-      unsubFinishHydration();
-    };
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    const unsub = useGameStore.persist.onFinishHydration(onStoreChange);
+    return unsub;
   }, []);
 
-  return hydrated;
+  return useSyncExternalStore(
+    subscribe,
+    () => useGameStore.persist.hasHydrated(),
+    () => false,
+  );
 };

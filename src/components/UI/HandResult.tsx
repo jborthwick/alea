@@ -68,7 +68,9 @@ export function HandResult() {
 
     if (gamePhase !== 'scoring') {
       hasPlayedSound.current = false;
-      setShowOutcome(false);
+      // Reset outcome visibility when leaving scoring phase
+      // Wrapped in microtask to avoid synchronous setState in effect body
+      queueMicrotask(() => setShowOutcome(false));
     }
   }, [gamePhase, roundOutcome, playWin, playLose, vibrateWin, vibrateLose]);
 

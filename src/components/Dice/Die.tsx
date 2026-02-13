@@ -101,12 +101,13 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Create materials based on held state - memoize to prevent constant recreation
   const materials = useMemo(() => createDiceMaterials(isHeld, DICE_MATERIAL_STYLE), [isHeld]);
 
-  // Generate a random initial rotation (stable per die)
-  const initialRotation = useMemo((): [number, number, number] => [
+  // Generate a random initial rotation (stable per die, computed once)
+  // useState lazy initializer is the React-sanctioned way to run impure init code once
+  const [initialRotation] = useState<[number, number, number]>(() => [
     Math.random() * Math.PI * 2,
     Math.random() * Math.PI * 2,
     Math.random() * Math.PI * 2,
-  ], []);
+  ]);
 
   // Pre-roll resting position near bottom of play area
   const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({
@@ -126,7 +127,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   useEffect(() => {
     if (rollTrigger !== lastRollTrigger.current && !isHeld) {
       lastRollTrigger.current = rollTrigger;
-      setIsSettled(false);
+      queueMicrotask(() => setIsSettled(false));
       isPhysicsActive.current = true;
 
       const rb = rigidBodyRef.current;

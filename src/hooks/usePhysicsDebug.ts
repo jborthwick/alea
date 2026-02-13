@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { useControls, folder, button } from 'leva';
 import {
   GRAVITY,
@@ -23,6 +24,10 @@ const DEFAULTS = {
 const d = (name: string, val: number) => `${name} [${val}]`;
 
 export function usePhysicsDebug() {
+  // Use a ref to break the circular reference: button callbacks reference
+  // setRef.current instead of the `set` variable from the same destructuring.
+  const setRef = useRef<((values: Record<string, unknown>) => void) | null>(null);
+
   const [values, set] = useControls(() => ({
     'Physics': folder({
       gravity: { value: DEFAULTS.gravity, min: -120, max: -5, step: 1, label: d('Gravity', DEFAULTS.gravity) },
@@ -38,7 +43,7 @@ export function usePhysicsDebug() {
       diceSize: { value: DEFAULTS.diceSize, min: 0.3, max: 2, step: 0.05, label: d('Dice Size', DEFAULTS.diceSize) },
     }),
     'Reset Defaults': button(() => {
-      set(DEFAULTS);
+      setRef.current?.(DEFAULTS);
     }),
     'Copy Values': button((get) => {
       const v = get as unknown as Record<string, number>;
@@ -56,10 +61,14 @@ friction={${v['Physics.friction']}}
 mass={${v['Physics.mass']}}`;
 
       navigator.clipboard.writeText(code).then(() => {
-        console.log('📋 Physics values copied to clipboard!\n\n' + code);
+        console.log('Physics values copied to clipboard!\n\n' + code);
       });
     }),
   }));
+
+  useEffect(() => {
+    setRef.current = set;
+  });
 
   return values;
 }

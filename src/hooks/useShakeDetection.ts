@@ -1,5 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+// iOS 13+ extends DeviceMotionEvent with a requestPermission static method
+interface DeviceMotionEventIOS extends DeviceMotionEvent {
+  requestPermission?: never;
+}
+interface DeviceMotionEventIOSConstructor {
+  new (type: string, eventInitDict?: DeviceMotionEventInit): DeviceMotionEventIOS;
+  prototype: DeviceMotionEventIOS;
+  requestPermission?: () => Promise<'granted' | 'denied'>;
+}
+
 interface ShakeDetectionOptions {
   threshold?: number;
   debounceMs?: number;
@@ -45,37 +55,32 @@ export function useShakeDetection(
     onShake,
   } = options;
 
-  const [isSupported, setIsSupported] = useState(false);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  // Compute support and initial permission state once (avoids setState in effect)
+  const [isSupported] = useState(() => {
+    return typeof window !== 'undefined' &&
+      'DeviceMotionEvent' in window &&
+      isMobileDevice();
+  });
+
+  const [hasPermission, setHasPermission] = useState<boolean | null>(() => {
+    if (!isSupported) return null;
+    const DME = DeviceMotionEvent as unknown as DeviceMotionEventIOSConstructor;
+    if (typeof DME.requestPermission === 'function') {
+      // iOS 13+: permission state unknown until requested
+      return null;
+    }
+    // Non-iOS: permission not required
+    return true;
+  });
+
   const [lastShakeIntensity, setLastShakeIntensity] = useState(0);
 
   const lastShakeTime = useRef(0);
   const samples = useRef<number[]>([]);
   const onShakeRef = useRef(onShake);
-  onShakeRef.current = onShake;
-
-  // Check if DeviceMotion is supported on a mobile device
   useEffect(() => {
-    const supported =
-      typeof window !== 'undefined' &&
-      'DeviceMotionEvent' in window &&
-      isMobileDevice();
-    setIsSupported(supported);
-
-    // Check if permission is already granted (non-iOS or already permitted)
-    if (supported) {
-      // iOS 13+ requires permission request
-      if (
-        typeof (DeviceMotionEvent as any).requestPermission === 'function'
-      ) {
-        // Permission state unknown until requested
-        setHasPermission(null);
-      } else {
-        // Non-iOS, permission not required
-        setHasPermission(true);
-      }
-    }
-  }, []);
+    onShakeRef.current = onShake;
+  });
 
   // Handle motion events
   const handleMotion = useCallback(
@@ -136,8 +141,9 @@ export function useShakeDetection(
 
     try {
       // Check if permission API exists (iOS 13+)
-      if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-        const response = await (DeviceMotionEvent as any).requestPermission();
+      const DME = DeviceMotionEvent as unknown as DeviceMotionEventIOSConstructor;
+      if (typeof DME.requestPermission === 'function') {
+        const response = await DME.requestPermission();
         const granted = response === 'granted';
         setHasPermission(granted);
         return granted;

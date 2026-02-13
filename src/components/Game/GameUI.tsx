@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { ChipDisplay } from '../UI/ChipDisplay';
 import { RollCounter } from '../UI/RollCounter';
@@ -50,11 +50,13 @@ export function GameUI({ onRoll }: GameUIProps) {
 
   // Use refs to always have access to current values (avoid stale closures)
   const canRollRef = useRef(canRoll);
-  canRollRef.current = canRoll;
   const handleRollRef = useRef(handleRoll);
-  handleRollRef.current = handleRoll;
   const shakeEnabledRef = useRef(shakeEnabled);
-  shakeEnabledRef.current = shakeEnabled;
+  useEffect(() => {
+    canRollRef.current = canRoll;
+    handleRollRef.current = handleRoll;
+    shakeEnabledRef.current = shakeEnabled;
+  });
 
   const { isSupported: shakeSupported, hasPermission, requestPermission } = useShakeDetection({
     onShake: (intensity) => {
