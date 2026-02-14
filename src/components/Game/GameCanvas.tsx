@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Stats, Environment } from '@react-three/drei';
+import { Environment } from '@react-three/drei';
 import { Leva } from 'leva';
 import { Suspense, useRef, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -53,7 +53,7 @@ function Scene({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProp
 }
 
 export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProps) {
-  const showFPS = useGameStore((state) => state.showFPS);
+  const showDebugPanel = useGameStore((state) => state.showDebugPanel);
 
   // Use wider FOV on mobile to prevent dice cutoff
   const isMobile = window.innerWidth <= 768;
@@ -66,7 +66,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY, onReady }: Ga
 
   return (
     <>
-      <Leva hidden={import.meta.env.PROD} collapsed titleBar={{ title: 'Debug Panel' }} theme={{ sizes: { rootWidth: '380px', controlWidth: '200px' } }} />
+      <Leva hidden={!showDebugPanel} collapsed titleBar={{ title: 'Debug Panel' }} theme={{ sizes: { rootWidth: '380px', controlWidth: '200px' } }} />
       <Canvas
         shadows={{ type: THREE.VSMShadowMap }}
         camera={{
@@ -77,7 +77,6 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY, onReady }: Ga
         }}
         style={{ background: 'rgb(var(--bg))' }}
       >
-        {showFPS && <Stats showPanel={0} className="stats-panel" />}
         <Suspense fallback={null}>
           <Scene rollTrigger={rollTrigger} intensity={intensity} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} />
         </Suspense>

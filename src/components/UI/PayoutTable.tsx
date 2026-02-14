@@ -21,7 +21,6 @@ export function PayoutTable() {
           <span className="payout-hand">{HAND_NAMES[hand].replace('!', '')}</span>
         </div>
       ))}
-      <div className="payout-info">Beat the opponent to win 2x your bet</div>
     </div>
   );
 }

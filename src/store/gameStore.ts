@@ -46,7 +46,7 @@ export const useGameStore = create<GameState>()(
       lastWin: 0,
       soundEnabled: true,
       shakeEnabled: false, // Starts off; user must enable each session (iOS doesn't persist permission)
-      showFPS: false,
+      showDebugPanel: false,
 
       // Opponent state
       opponentDice: createInitialOpponentDice(),
@@ -245,8 +245,8 @@ export const useGameStore = create<GameState>()(
         set({ shakeEnabled: !get().shakeEnabled });
       },
 
-      toggleFPS: () => {
-        set({ showFPS: !get().showFPS });
+      toggleDebugPanel: () => {
+        set({ showDebugPanel: !get().showDebugPanel });
       },
 
       resetBankroll: () => {
@@ -288,7 +288,6 @@ export const useGameStore = create<GameState>()(
         bankroll: state.bankroll,
         selectedTable: state.selectedTable,
         soundEnabled: state.soundEnabled,
-        showFPS: state.showFPS,
         // Note: shakeEnabled is intentionally NOT persisted because iOS Safari
         // doesn't persist DeviceMotion permission across page reloads
       }),

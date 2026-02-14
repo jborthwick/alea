@@ -12,7 +12,7 @@
 .chip-display {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.25rem;
 }
 
@@ -106,13 +106,17 @@
   margin-top: 0.25rem;
 }
 
-/* Opponent hand display (top of screen) */
+/* Opponent hand display (top of screen, centered) */
 .opponent-hand-display {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
 .opponent-hand-display .hand-name {
@@ -239,11 +243,6 @@
   justify-content: space-between;
   padding: 0.25rem 0;
   font-size: 0.8rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.payout-row:last-child {
-  border-bottom: none;
 }
 
 .payout-hand {
@@ -255,14 +254,6 @@
   font-weight: bold;
 }
 
-.payout-info {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
 
 /* Hold indicator for dice */
 .hold-indicator {

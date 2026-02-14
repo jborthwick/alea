@@ -3,12 +3,10 @@ import { useGameStore } from '../../store/gameStore';
 import { ChipDisplay } from '../UI/ChipDisplay';
 import { RollCounter } from '../UI/RollCounter';
 import { HandResult, OpponentHandDisplay, PlayerHandDisplay } from '../UI/HandResult';
-import { PayoutTable } from '../UI/PayoutTable';
 import { SettingsPanel } from '../UI/SettingsPanel';
 import { useAudio } from '../../hooks/useAudio';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useShakeDetection } from '../../hooks/useShakeDetection';
-import { TABLE_CONFIGS } from '../../game/constants';
 import './GameUI.css';
 
 interface GameUIProps {
@@ -21,13 +19,10 @@ export function GameUI({ onRoll }: GameUIProps) {
   const rollsRemaining = useGameStore((state) => state.rollsRemaining);
   const bankroll = useGameStore((state) => state.bankroll);
   const currentBet = useGameStore((state) => state.currentBet);
-  const selectedTable = useGameStore((state) => state.selectedTable);
   const newRound = useGameStore((state) => state.newRound);
-  const returnToLobby = useGameStore((state) => state.returnToLobby);
   const shakeEnabled = useGameStore((state) => state.shakeEnabled);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
 
   const { playRoll, initAudio } = useAudio();
   const { vibrateRoll } = useHaptics();
@@ -76,11 +71,6 @@ export function GameUI({ onRoll }: GameUIProps) {
     await requestPermission();
   };
 
-  const tableName = selectedTable ? TABLE_CONFIGS[selectedTable].name : '';
-  const tableBetLabel = selectedTable
-    ? (TABLE_CONFIGS[selectedTable].bet === 0 ? 'Free' : `$${TABLE_CONFIGS[selectedTable].bet}`)
-    : '';
-
   // Determine button text
   let buttonText = 'ROLL';
   if (gamePhase === 'scoring') {
@@ -93,39 +83,15 @@ export function GameUI({ onRoll }: GameUIProps) {
     <div className="game-ui">
       {/* Top bar */}
       <div className="ui-top">
-        <div className="top-left">
-          <button
-            className="back-button"
-            onClick={returnToLobby}
-            aria-label="Back to table select"
-          >
-            ←
-          </button>
-          <div className="table-info">
-            <span className="table-info-name">{tableName}</span>
-            <span className="table-info-bet">{tableBetLabel}</span>
-          </div>
-        </div>
+        <ChipDisplay />
         <OpponentHandDisplay />
-        <div className="top-right">
-          <ChipDisplay />
-          <div className="top-buttons">
-            <button
-              className="info-button"
-              onClick={() => setInfoOpen(true)}
-              aria-label="Show hand rankings"
-            >
-              ℹ️
-            </button>
-            <button
-              className="settings-button"
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Open settings"
-            >
-              ⚙️
-            </button>
-          </div>
-        </div>
+        <button
+          className="menu-button"
+          onClick={() => setSettingsOpen(true)}
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
       </div>
 
       {/* Settings panel */}
@@ -136,18 +102,6 @@ export function GameUI({ onRoll }: GameUIProps) {
         shakePermission={hasPermission}
         onRequestShakePermission={handleRequestShakePermission}
       />
-
-      {/* Info overlay (hand rankings for mobile) */}
-      {infoOpen && (
-        <div className="info-overlay" onClick={() => setInfoOpen(false)}>
-          <div className="info-panel" onClick={(e) => e.stopPropagation()}>
-            <PayoutTable />
-            <button className="info-close" onClick={() => setInfoOpen(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Center - Hand result */}
       <div className="ui-center">
@@ -177,10 +131,6 @@ export function GameUI({ onRoll }: GameUIProps) {
         <RollCounter />
       </div>
 
-      {/* Payout table (collapsible on mobile) */}
-      <div className="payout-container">
-        <PayoutTable />
-      </div>
     </div>
   );
 }

@@ -29,22 +29,16 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  flex-wrap: wrap;
+  position: relative;
 }
 
-/* Top left group (back button + table info) */
-.top-left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.back-button {
+/* Menu button (top right) */
+.menu-button {
   background: rgba(0, 0, 0, 0.4);
   border: none;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   font-size: 1.25rem;
   color: rgb(var(--text));
   cursor: pointer;
@@ -52,120 +46,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-left: auto;
 }
 
-.back-button:hover {
+.menu-button:hover {
   background: rgba(0, 0, 0, 0.6);
-}
-
-.table-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.table-info-name {
-  font-size: 0.875rem;
-  font-weight: bold;
-  color: rgb(var(--accent));
-  line-height: 1.2;
-}
-
-.table-info-bet {
-  font-size: 0.7rem;
-  color: rgba(var(--text), 0.6);
-  line-height: 1.2;
-}
-
-/* Top right group (bankroll + buttons) */
-.top-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* Top button group */
-.top-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Info button - only visible on mobile where payout table is hidden */
-.info-button {
-  display: none;
-  background: rgba(0, 0, 0, 0.4);
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  align-items: center;
-  justify-content: center;
-}
-
-.info-button:hover {
-  background: rgba(0, 0, 0, 0.6);
-}
-
-/* Info overlay */
-.info-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.info-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  max-width: 280px;
-  width: 90%;
-}
-
-.info-close {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgb(var(--accent));
-  border-radius: 4px;
-  color: rgb(var(--accent));
-  padding: 0.5rem 1.5rem;
-  font-size: 0.875rem;
-  font-family: 'Georgia', serif;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.info-close:hover {
-  background: rgba(var(--accent), 0.2);
-}
-
-/* Settings button */
-.settings-button {
-  background: rgba(0, 0, 0, 0.4);
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.settings-button:hover {
-  background: rgba(0, 0, 0, 0.6);
-  transform: rotate(30deg);
 }
 
 /* Center area */
@@ -261,14 +146,6 @@
   text-align: center;
 }
 
-/* Payout table container */
-.payout-container {
-  position: absolute;
-  top: 4rem;
-  right: 1rem;
-  max-width: 180px;
-}
-
 /* Mobile styles */
 @media (max-width: 768px) {
   .game-ui {
@@ -280,7 +157,6 @@
   }
 
   .ui-top {
-    flex-wrap: wrap;
     flex-shrink: 0;
   }
 
@@ -293,14 +169,6 @@
 
   .ui-bottom {
     flex-shrink: 0;
-  }
-
-  .payout-container {
-    display: none;
-  }
-
-  .info-button {
-    display: flex;
   }
 
   .roll-button {

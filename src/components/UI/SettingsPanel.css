@@ -60,6 +60,64 @@
   gap: 1rem;
 }
 
+/* Menu items (main screen) */
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.875rem 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item-chevron {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.25rem;
+}
+
+/* Back button in sub-screen headers */
+.menu-back {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.menu-back:hover {
+  color: white;
+}
+
+/* How to Play text */
+.how-to-play-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Payout table embedded in settings panel */
+.settings-content .payout-table {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  backdrop-filter: none;
+}
+
 .settings-row {
   display: flex;
   justify-content: space-between;
