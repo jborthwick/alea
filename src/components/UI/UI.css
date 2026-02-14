@@ -70,8 +70,8 @@
 }
 
 .hand-result.win {
-  border: 2px solid rgb(var(--win));
-  box-shadow: 0 0 20px rgba(var(--win), 0.3);
+  border: 2px solid rgb(var(--accent));
+  box-shadow: 0 0 20px rgba(var(--accent), 0.3);
 }
 
 .hand-name {
@@ -88,12 +88,12 @@
 }
 
 .win-amount.positive {
-  color: rgb(var(--win));
-  text-shadow: 0 0 10px rgba(var(--win), 0.5);
+  color: rgb(var(--accent));
+  text-shadow: 0 0 10px rgba(var(--accent), 0.5);
 }
 
 .win-amount.negative {
-  color: rgb(var(--lose));
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .win-amount.tie {
@@ -192,8 +192,8 @@
   animation: fadeIn 0.5s ease-in;
 }
 
-.outcome-text.win { color: rgb(var(--win)); }
-.outcome-text.lose { color: rgb(var(--lose)); }
+.outcome-text.win { color: rgb(var(--accent)); }
+.outcome-text.lose { color: rgba(255, 255, 255, 0.85); }
 .outcome-text.tie { color: rgb(var(--accent)); }
 
 @keyframes fadeIn {
@@ -208,8 +208,8 @@
 }
 
 .hand-result.final.lose {
-  border: 2px solid rgb(var(--lose));
-  box-shadow: 0 0 20px rgba(var(--lose), 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
 }
 
 .hand-result.final.tie {

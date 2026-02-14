@@ -35,7 +35,6 @@ export function PlayerHandDisplay() {
 // Final result modal (shown in center during scoring)
 export function HandResult() {
   const currentHand = useGameStore((state) => state.currentHand);
-  const opponentHand = useGameStore((state) => state.opponentHand);
   const lastWin = useGameStore((state) => state.lastWin);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const roundOutcome = useGameStore((state) => state.roundOutcome);
@@ -81,19 +80,10 @@ export function HandResult() {
 
   return (
     <div className={`hand-result final ${outcomeClass} ${showOutcome ? 'expanded' : ''}`}>
-      <div className="hand-comparison-row">
-        <div className="hand-comparison opponent">
-          <div className="hand-name">{opponentHand?.displayName}</div>
-        </div>
-        <div className="vs-divider">vs</div>
-        <div className="hand-comparison player">
-          <div className="hand-name">{currentHand.displayName}</div>
-        </div>
-      </div>
       {showOutcome && (
         <>
           <div className={`outcome-text ${outcomeClass}`}>
-            {roundOutcome === 'win' ? 'YOU WIN!' : roundOutcome === 'lose' ? 'YOU LOSE' : 'PUSH'}
+            {roundOutcome === 'win' ? 'You win!' : roundOutcome === 'lose' ? 'Dealer wins!' : 'Push'}
           </div>
           {roundOutcome === 'win' && (
             <div className="win-amount positive">+${lastWin}</div>
