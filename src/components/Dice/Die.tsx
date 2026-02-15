@@ -11,6 +11,7 @@ import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS,
 import type { DiceSetId } from '../../game/constants';
 import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
+import { useGlassDebug } from '../../hooks/useGlassDebug';
 
 interface DieProps {
   id: number;
@@ -27,6 +28,7 @@ const ACE_UP_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(...ACE_U
 
 export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHold }: DieProps) {
   const { mass, restitution, friction, angularDamping, linearDamping, diceSize, diceMaterial, diceSet: debugDiceSet } = usePhysicsDebug();
+  const glassDebug = useGlassDebug();
   const rigidBodyRef = useRef<RapierRigidBody>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const [isSettled, setIsSettled] = useState(false);
@@ -114,8 +116,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Create geometry once
   const geometry = useMemo(() => createDiceGeometry(), []);
 
-  // Create materials (rebuild when dice set or material changes)
-  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet), [effectiveMaterial, diceSet]);
+  // Create materials (rebuild when dice set, material, or glass debug values change)
+  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet, glassDebug), [effectiveMaterial, diceSet, glassDebug]);
 
   // Pre-roll resting position near bottom of play area
   const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({

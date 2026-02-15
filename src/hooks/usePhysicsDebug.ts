@@ -68,12 +68,12 @@ export function usePhysicsDebug() {
       diceSize: { value: DEFAULTS.diceSize, min: 0.3, max: 2, step: 0.05, label: d('Dice Size', DEFAULTS.diceSize) },
       diceMaterial: {
         value: DEFAULTS.diceMaterial,
-        options: { 'Set Default': '', 'Casino': 'casino', 'Glossy': 'glossy', 'Matte': 'matte', 'Pearlescent': 'pearlescent' },
+        options: { 'Set Default': '', 'Casino': 'casino', 'Glossy': 'glossy', 'Matte': 'matte', 'Pearlescent': 'pearlescent', 'Glass': 'glass' },
         label: 'Material',
       },
       diceSet: {
         value: DEFAULTS.diceSet,
-        options: { 'Table Default': '', 'Alpha': 'alpha', 'Black Modern': 'blackmodern' },
+        options: { 'Table Default': '', 'Alpha': 'alpha', 'Black Modern': 'blackmodern', 'Transparent White': 'transparentwhite' },
         label: 'Dice Set',
       },
       'Reset Appearance': button(() => { setRef.current?.(pick(['diceSize', 'diceMaterial', 'diceSet'])); }),

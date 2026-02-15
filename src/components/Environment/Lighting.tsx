@@ -69,6 +69,7 @@ export function Lighting({ tiltX = 0, tiltY = 0, debug }: LightingProps) {
         decay={debug.spotDecay}
         target-position={[0, 0, 0]}
       />
+
     </>
   );
 }

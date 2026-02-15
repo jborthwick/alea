@@ -17,6 +17,7 @@ import {
 import type { DiceSetId } from '../../game/constants';
 import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
+import { useGlassDebug } from '../../hooks/useGlassDebug';
 
 // Map a CardValue to the quaternion that shows that face on top.
 // Based on faceDetection.ts: +Y=9, -Y=A, +X=10, -X=K, +Z=J, -Z=Q
@@ -37,6 +38,7 @@ function OpponentDie({ id }: { id: number }) {
   const opponentIsRolling = useGameStore(state => state.opponentIsRolling);
   const selectedTable = useGameStore(state => state.selectedTable);
   const { diceMaterial, diceSet: debugDiceSet } = usePhysicsDebug();
+  const glassDebug = useGlassDebug();
   const scale = OPPONENT_DICE_SIZE / DICE_SIZE;
   const xPos = (id - 2) * OPPONENT_DICE_SPACING;
 
@@ -48,8 +50,8 @@ function OpponentDie({ id }: { id: number }) {
   const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
 
   const geometry = useMemo(() => createDiceGeometry(), []);
-  // Create materials (rebuild when dice set or material changes)
-  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet), [effectiveMaterial, diceSet]);
+  // Create materials (rebuild when dice set, material, or glass debug values change)
+  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet, glassDebug), [effectiveMaterial, diceSet, glassDebug]);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;

@@ -38,18 +38,20 @@ export const HAND_NAMES: Record<HandRank, string> = {
 export const INITIAL_BANKROLL = 1000;
 
 // Dice set definitions
-export type DiceSetId = 'alpha' | 'blackmodern';
+export type DiceSetId = 'alpha' | 'blackmodern' | 'transparentwhite';
 
 // Canvas background fill per dice set (drawn before the PNG overlay)
 export const DICE_SET_BG_COLORS: Record<DiceSetId, string> = {
   alpha: '#FAFAFA',
-  blackmodern: '#333333',
+  blackmodern: '#1A1A1A',
+  transparentwhite: '#1f4565',
 };
 
 // Default material preset per dice set
 export const DICE_SET_MATERIALS: Record<DiceSetId, string> = {
   alpha: 'casino',
   blackmodern: 'pearlescent',
+  transparentwhite: 'glass',
 };
 
 // Table definitions
@@ -85,7 +87,7 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     id: 'bluejay',
     name: 'Bluejay',
     bet: 10,
-    diceSet: 'alpha',
+    diceSet: 'transparentwhite',
     accent: '70, 140, 220',
     accentDark: '40, 100, 180',
     rimColor: '#0e2a4a',
@@ -166,6 +168,12 @@ export const SPOT_HEIGHT = 12;
 export const SPOT_ANGLE = Math.PI / 6;
 export const SPOT_PENUMBRA = 1.0;
 export const SPOT_DECAY = 1.5;
+// Backlight (accent-colored point light behind table)
+export const BACK_LIGHT_INTENSITY = 3.0;
+export const BACK_LIGHT_POS_X = 0;
+export const BACK_LIGHT_POS_Y = 1;
+export const BACK_LIGHT_POS_Z = -6;
+export const BACK_LIGHT_DECAY = 1.5;
 // Environment
 export const ENV_INTENSITY = 0.8;
 

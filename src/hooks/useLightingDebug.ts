@@ -16,6 +16,11 @@ import {
   SPOT_ANGLE,
   SPOT_PENUMBRA,
   SPOT_DECAY,
+  BACK_LIGHT_INTENSITY,
+  BACK_LIGHT_POS_X,
+  BACK_LIGHT_POS_Y,
+  BACK_LIGHT_POS_Z,
+  BACK_LIGHT_DECAY,
   ENV_INTENSITY,
 } from '../game/constants';
 
@@ -35,6 +40,11 @@ const DEFAULTS = {
   spotAngle: SPOT_ANGLE,
   spotPenumbra: SPOT_PENUMBRA,
   spotDecay: SPOT_DECAY,
+  backIntensity: BACK_LIGHT_INTENSITY,
+  backPosX: BACK_LIGHT_POS_X,
+  backPosY: BACK_LIGHT_POS_Y,
+  backPosZ: BACK_LIGHT_POS_Z,
+  backDecay: BACK_LIGHT_DECAY,
   envIntensity: ENV_INTENSITY,
 };
 
@@ -83,6 +93,14 @@ export function useLightingDebug() {
       spotDecay: { value: DEFAULTS.spotDecay, min: 0, max: 3, step: 0.1, label: d('Decay', DEFAULTS.spotDecay) },
       'Reset Spot': button(() => { setRef.current?.(pick(['spotIntensity', 'spotHeight', 'spotAngle', 'spotPenumbra', 'spotDecay'])); }),
     }),
+    'Backlight': folder({
+      backIntensity: { value: DEFAULTS.backIntensity, min: 0, max: 5, step: 0.1, label: d('Intensity', DEFAULTS.backIntensity) },
+      backPosX: { value: DEFAULTS.backPosX, min: -15, max: 15, step: 0.5, label: d('X', DEFAULTS.backPosX) },
+      backPosY: { value: DEFAULTS.backPosY, min: 0, max: 15, step: 0.5, label: d('Y', DEFAULTS.backPosY) },
+      backPosZ: { value: DEFAULTS.backPosZ, min: -20, max: 0, step: 0.5, label: d('Z', DEFAULTS.backPosZ) },
+      backDecay: { value: DEFAULTS.backDecay, min: 0, max: 3, step: 0.1, label: d('Decay', DEFAULTS.backDecay) },
+      'Reset Back': button(() => { setRef.current?.(pick(['backIntensity', 'backPosX', 'backPosY', 'backPosZ', 'backDecay'])); }),
+    }),
     'Environment': folder({
       envIntensity: { value: DEFAULTS.envIntensity, min: 0, max: 2, step: 0.05, label: d('Intensity', DEFAULTS.envIntensity) },
       'Reset Env': button(() => { setRef.current?.(pick(['envIntensity'])); }),
@@ -110,6 +128,12 @@ export const SPOT_HEIGHT = ${v['Spotlight.spotHeight']};
 export const SPOT_ANGLE = ${v['Spotlight.spotAngle']};
 export const SPOT_PENUMBRA = ${v['Spotlight.spotPenumbra']};
 export const SPOT_DECAY = ${v['Spotlight.spotDecay']};
+// Backlight
+export const BACK_LIGHT_INTENSITY = ${v['Backlight.backIntensity']};
+export const BACK_LIGHT_POS_X = ${v['Backlight.backPosX']};
+export const BACK_LIGHT_POS_Y = ${v['Backlight.backPosY']};
+export const BACK_LIGHT_POS_Z = ${v['Backlight.backPosZ']};
+export const BACK_LIGHT_DECAY = ${v['Backlight.backDecay']};
 // Environment
 export const ENV_INTENSITY = ${v['Environment.envIntensity']};`;
 
