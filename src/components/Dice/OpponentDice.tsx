@@ -12,7 +12,6 @@ import {
   OPPONENT_DICE_SPACING,
   TABLE_CONFIGS,
   DICE_SET_MATERIALS,
-  accentToHex,
 } from '../../game/constants';
 import type { DiceSetId } from '../../game/constants';
 import type { DiceMaterialPreset } from './DiceGeometry';
@@ -45,7 +44,6 @@ function OpponentDie({ id }: { id: number }) {
   // Table config for glow color and dice set
   const tableId = selectedTable ?? 'owl';
   const tableConfig = TABLE_CONFIGS[tableId];
-  const glowColor = accentToHex(tableConfig.accent);
   const diceSet = (debugDiceSet || tableConfig.diceSet) as DiceSetId;
   const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
 
@@ -116,11 +114,8 @@ function OpponentDie({ id }: { id: number }) {
         receiveShadow
       />
       <GlowOverlay
-        position={[xPos, OPPONENT_DICE_Y, OPPONENT_DICE_Z]}
-        meshRef={meshRef}
-        color={glowColor}
+        dieMeshRef={meshRef}
         visible={die.isHeld}
-        scaleFactor={OPPONENT_DICE_SIZE / DICE_SIZE}
       />
     </>
   );

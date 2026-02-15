@@ -7,7 +7,7 @@ import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry, releaseDiceMaterials, applyGlassOverrides } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
-import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS, accentToHex } from '../../game/constants';
+import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS } from '../../game/constants';
 import type { DiceSetId } from '../../game/constants';
 import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
@@ -60,13 +60,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Table config for glow color and dice set
   const tableId = selectedTable ?? 'owl';
   const tableConfig = TABLE_CONFIGS[tableId];
-  const glowColor = accentToHex(tableConfig.accent);
   const diceSet = (debugDiceSet || tableConfig.diceSet) as DiceSetId;
   const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
-
-  // Track position and rotation for glow overlay (updated each frame)
-  const glowPositionRef = useRef<[number, number, number]>([0, 0, 0]);
-  const glowRotationRef = useRef<[number, number, number, number]>([0, 0, 0, 1]);
 
   // After third roll, all dice should move to hold tray
   const shouldBeInHoldTray = (gamePhase === 'rolling' || gamePhase === 'scoring') && rollsRemaining === 0;
@@ -190,12 +185,6 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   useFrame((_, delta) => {
     const rb = rigidBodyRef.current;
     if (!rb) return;
-
-    // Track position and rotation for glow overlay
-    const rbPos = rb.translation();
-    glowPositionRef.current = [rbPos.x, rbPos.y, rbPos.z];
-    const rbRot = rb.rotation();
-    glowRotationRef.current = [rbRot.x, rbRot.y, rbRot.z, rbRot.w];
 
     // Update physics properties from debug sliders (Rapier doesn't react to prop changes)
     rb.setLinearDamping(linearDamping);
@@ -393,9 +382,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
         />
       </RigidBody>
       <GlowOverlay
-        positionRef={glowPositionRef}
-        rotationRef={glowRotationRef}
-        color={glowColor}
+        dieMeshRef={meshRef}
         visible={isHeld || shouldBeInHoldTray}
       />
     </>

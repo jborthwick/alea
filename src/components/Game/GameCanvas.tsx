@@ -2,7 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { Environment } from '@react-three/drei';
 import { Leva } from 'leva';
-import { Suspense, useRef, useCallback } from 'react';
+import { Suspense, useRef, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { DiceGroup } from '../Dice/DiceGroup';
@@ -12,6 +12,8 @@ import { Lighting } from '../Environment/Lighting';
 import { useGameStore } from '../../store/gameStore';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
 import { useLightingDebug } from '../../hooks/useLightingDebug';
+import { useOutlineEffect } from '../../hooks/useOutlineEffect';
+import { OutlineProvider } from '../../contexts/OutlineContext';
 
 interface GameCanvasProps {
   rollTrigger: number;
@@ -37,9 +39,12 @@ function ReadyNotifier({ onReady }: { onReady?: () => void }) {
 function Scene({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProps) {
   const { gravity } = usePhysicsDebug();
   const lighting = useLightingDebug();
+  const { addObject, removeObject } = useOutlineEffect();
+
+  const outlineCtx = useMemo(() => ({ addObject, removeObject }), [addObject, removeObject]);
 
   return (
-    <>
+    <OutlineProvider value={outlineCtx}>
       <Environment preset="night" environmentIntensity={lighting.envIntensity} />
       <Physics gravity={[0, gravity, 0]} timeStep="vary">
         <Lighting tiltX={tiltX} tiltY={tiltY} debug={lighting} />
@@ -48,7 +53,7 @@ function Scene({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProp
         <OpponentDiceGroup />
         <ReadyNotifier onReady={onReady} />
       </Physics>
-    </>
+    </OutlineProvider>
   );
 }
 
