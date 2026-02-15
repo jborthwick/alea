@@ -129,7 +129,7 @@ export function PlaySurface() {
           something to refract against when dice fly above the table edges.
           Without this, the transmission FBO samples empty/white where no geometry exists. */}
       <mesh position={[0, -0.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[60, 60]} />
+        <planeGeometry args={[30, 30]} />
         <meshStandardMaterial color="#111118" />
       </mesh>
 

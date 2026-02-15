@@ -1,8 +1,8 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/gameStore';
-import { createDiceGeometry, createDiceMaterials } from './DiceGeometry';
+import { createDiceGeometry, createDiceMaterials, releaseDiceMaterials, applyGlassOverrides } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
 import {
   DICE_SIZE,
@@ -50,8 +50,21 @@ function OpponentDie({ id }: { id: number }) {
   const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
 
   const geometry = useMemo(() => createDiceGeometry(), []);
-  // Create materials (rebuild when dice set, material, or glass debug values change)
-  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet, glassDebug), [effectiveMaterial, diceSet, glassDebug]);
+  // Get shared materials from cache (all dice with same preset+set reuse these)
+  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet),
+    [effectiveMaterial, diceSet]);
+
+  // Release ref-counted materials on unmount or when preset/set changes
+  useEffect(() => {
+    return () => releaseDiceMaterials(effectiveMaterial, diceSet);
+  }, [effectiveMaterial, diceSet]);
+
+  // Apply glass debug overrides in-place (no material recreation, just property updates)
+  useEffect(() => {
+    if (effectiveMaterial === 'glass' && glassDebug) {
+      applyGlassOverrides(materials, glassDebug);
+    }
+  }, [glassDebug, effectiveMaterial, materials]);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;

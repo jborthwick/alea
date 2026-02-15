@@ -41,8 +41,8 @@ export function Lighting({ tiltX = 0, tiltY = 0, debug }: LightingProps) {
         intensity={debug.mainIntensity}
         color={debug.mainColor}
         castShadow
-        shadow-mapSize-width={4096}
-        shadow-mapSize-height={4096}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-far={50}
         shadow-camera-left={-10}
         shadow-camera-right={10}

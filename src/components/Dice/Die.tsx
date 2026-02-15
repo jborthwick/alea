@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { useGameStore } from '../../store/gameStore';
 import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse } from '../../physics/impulseCalculator';
-import { createDiceMaterials, createDiceGeometry } from './DiceGeometry';
+import { createDiceMaterials, createDiceGeometry, releaseDiceMaterials, applyGlassOverrides } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
 import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS, accentToHex } from '../../game/constants';
 import type { DiceSetId } from '../../game/constants';
@@ -116,8 +116,21 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   // Create geometry once
   const geometry = useMemo(() => createDiceGeometry(), []);
 
-  // Create materials (rebuild when dice set, material, or glass debug values change)
-  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet, glassDebug), [effectiveMaterial, diceSet, glassDebug]);
+  // Get shared materials from cache (all dice with same preset+set reuse these)
+  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet),
+    [effectiveMaterial, diceSet]);
+
+  // Release ref-counted materials on unmount or when preset/set changes
+  useEffect(() => {
+    return () => releaseDiceMaterials(effectiveMaterial, diceSet);
+  }, [effectiveMaterial, diceSet]);
+
+  // Apply glass debug overrides in-place (no material recreation, just property updates)
+  useEffect(() => {
+    if (effectiveMaterial === 'glass' && glassDebug) {
+      applyGlassOverrides(materials, glassDebug);
+    }
+  }, [glassDebug, effectiveMaterial, materials]);
 
   // Pre-roll resting position near bottom of play area
   const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({

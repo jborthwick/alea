@@ -69,7 +69,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY, onReady }: Ga
       <Leva hidden={!showDebugPanel} collapsed titleBar={{ title: 'Debug Panel' }} theme={{ sizes: { rootWidth: '380px', controlWidth: '200px' } }} />
       <Canvas
         shadows={{ type: THREE.VSMShadowMap }}
-        gl={{ alpha: true }}
+        gl={{ alpha: true, powerPreference: 'high-performance' }}
         camera={{
           position: [0, 12, 2],
           fov,

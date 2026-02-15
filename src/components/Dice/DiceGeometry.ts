@@ -159,6 +159,10 @@ const DICE_SETS: Record<DiceSetId, Record<string, string>> = {
 // Cache for loaded images (keyed by URL, unique per set)
 const imageCache: Record<string, HTMLImageElement> = {};
 
+// Generated texture resolution (normalMap, roughnessMap, transmissionMap).
+// Lower than the 512px color map since these don't need pixel-perfect detail.
+const GEN_MAP_SIZE = 256;
+
 // Normal map generation constants
 const NORMAL_MAP_STRENGTH = 2.0; // Sobel gradient multiplier
 const NORMAL_MAP_BLUR = 2;       // Gaussian blur radius (px) for softer bevels
@@ -166,7 +170,7 @@ const NORMAL_SCALE = 0.8;        // Three.js normalScale intensity
 
 // Generate a normal map from an image's alpha channel using Sobel edge detection
 function createNormalMapFromAlpha(img: HTMLImageElement): THREE.CanvasTexture {
-  const size = 512;
+  const size = GEN_MAP_SIZE;
 
   // Draw image to extract alpha channel
   const srcCanvas = document.createElement('canvas');
@@ -272,7 +276,7 @@ interface DiceTextures {
 // Create a grayscale texture from an image's alpha channel.
 // Maps alpha > threshold to `designVal`, alpha <= threshold to `bgVal`.
 function createAlphaMapTexture(img: HTMLImageElement, designVal: number, bgVal: number): THREE.CanvasTexture {
-  const size = 512;
+  const size = GEN_MAP_SIZE;
   const srcCanvas = document.createElement('canvas');
   srcCanvas.width = size;
   srcCanvas.height = size;
@@ -398,6 +402,22 @@ export async function preloadAllDiceSets(): Promise<void> {
 // Mapped to: 10, K, 9, A, J, Q
 export const FACE_VALUES = ['10', 'K', '9', 'A', 'J', 'Q'];
 
+// Dispose an array of materials and all their textures to free GPU memory.
+// Call this in useEffect cleanup whenever materials are recreated.
+function disposeMaterials(materials: THREE.Material[]): void {
+  for (const mat of materials) {
+    // Dispose all texture properties
+    const m = mat as unknown as Record<string, unknown>;
+    for (const key of ['map', 'normalMap', 'roughnessMap', 'transmissionMap', 'metalnessMap', 'aoMap', 'emissiveMap']) {
+      const tex = m[key];
+      if (tex instanceof THREE.Texture) {
+        tex.dispose();
+      }
+    }
+    mat.dispose();
+  }
+}
+
 // Glass debug overrides — controls exposed in the Leva debug panel.
 // Note: roughness is not here because it's controlled by the roughnessMap (frosted etch).
 export interface GlassOverrides {
@@ -413,31 +433,77 @@ export interface GlassOverrides {
   specularColor: string;
 }
 
-// Create materials for all six faces with specified material preset and dice set
+// Material cache: all dice sharing the same (preset, diceSet) reuse the same material array.
+// This prevents 11 dice from each creating their own materials/textures.
+// Glass overrides are applied in-place so the textures aren't recreated.
+const materialCache = new Map<string, { materials: THREE.Material[]; refCount: number }>();
+
+function buildCacheKey(preset: DiceMaterialPreset, diceSet: DiceSetId): string {
+  return `${preset}:${diceSet}`;
+}
+
+// Create (or reuse cached) materials for all six faces.
+// All dice with the same preset + diceSet share materials. Call releaseDiceMaterials when done.
 export function createDiceMaterials(
   preset: DiceMaterialPreset = 'casino',
   diceSet: DiceSetId = 'alpha',
   glassOverrides?: GlassOverrides,
 ): THREE.Material[] {
-  let materialProps = DICE_MATERIAL_PRESETS[preset];
+  const key = buildCacheKey(preset, diceSet);
+  let entry = materialCache.get(key);
 
-  // Apply glass debug overrides when preset is glass
-  if (preset === 'glass' && glassOverrides) {
-    materialProps = {
-      ...materialProps,
-      metalness: glassOverrides.metalness,
-      transmission: glassOverrides.transmission,
-      ior: glassOverrides.ior,
-      thickness: glassOverrides.thickness,
-      color: glassOverrides.color,
-      envMapIntensity: glassOverrides.envMapIntensity,
-      attenuationColor: glassOverrides.attenuationColor,
-      attenuationDistance: glassOverrides.attenuationDistance,
-      specularIntensity: glassOverrides.specularIntensity,
-      specularColor: glassOverrides.specularColor,
-    };
+  if (!entry) {
+    // Create new materials
+    const materials = buildMaterials(preset, diceSet);
+    entry = { materials, refCount: 0 };
+    materialCache.set(key, entry);
   }
 
+  entry.refCount++;
+
+  // Apply glass debug overrides in-place (updates material properties without recreating)
+  if (preset === 'glass' && glassOverrides) {
+    applyGlassOverrides(entry.materials, glassOverrides);
+  }
+
+  return entry.materials;
+}
+
+// Release a reference to cached materials. Disposes when no more references exist.
+export function releaseDiceMaterials(preset: DiceMaterialPreset, diceSet: DiceSetId): void {
+  const key = buildCacheKey(preset, diceSet);
+  const entry = materialCache.get(key);
+  if (!entry) return;
+
+  entry.refCount--;
+  if (entry.refCount <= 0) {
+    disposeMaterials(entry.materials);
+    materialCache.delete(key);
+  }
+}
+
+// Apply glass debug overrides to existing materials in-place (no texture recreation)
+export function applyGlassOverrides(materials: THREE.Material[], overrides: GlassOverrides): void {
+  for (const mat of materials) {
+    if (mat instanceof THREE.MeshPhysicalMaterial) {
+      mat.metalness = overrides.metalness;
+      mat.transmission = overrides.transmission;
+      mat.ior = overrides.ior;
+      mat.thickness = overrides.thickness;
+      mat.color.set(overrides.color);
+      mat.envMapIntensity = overrides.envMapIntensity;
+      mat.attenuationColor.set(overrides.attenuationColor);
+      mat.attenuationDistance = overrides.attenuationDistance;
+      mat.specularIntensity = overrides.specularIntensity;
+      mat.specularColor.set(overrides.specularColor);
+      mat.needsUpdate = true;
+    }
+  }
+}
+
+// Build fresh material array (internal, used by cache)
+function buildMaterials(preset: DiceMaterialPreset, diceSet: DiceSetId): THREE.Material[] {
+  const materialProps = DICE_MATERIAL_PRESETS[preset];
   const usePhysical = materialProps.clearcoat !== undefined || materialProps.transmission !== undefined;
   const isGlass = preset === 'glass';
 
