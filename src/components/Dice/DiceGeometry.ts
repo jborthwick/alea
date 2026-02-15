@@ -37,12 +37,12 @@ interface MaterialProperties {
   transmission?: number;
   ior?: number;
   thickness?: number;
-  transparent?: boolean;
-  opacity?: number;
   color?: string;
   envMapIntensity?: number;
-  emissive?: string;
-  emissiveIntensity?: number;
+  attenuationColor?: string;
+  attenuationDistance?: number;
+  specularIntensity?: number;
+  specularColor?: string;
 }
 
 export const DICE_MATERIAL_PRESETS: Record<DiceMaterialPreset, MaterialProperties> = {
@@ -70,18 +70,20 @@ export const DICE_MATERIAL_PRESETS: Record<DiceMaterialPreset, MaterialPropertie
     clearcoat: 0.8,
     clearcoatRoughness: 0.05,
   },
-  // Transparent glass/acrylic
+  // Transparent glass — modeled after Three.js transmission alpha example
+  // Blue tint via attenuation (like bluejay accent #468CDC)
   glass: {
-    roughness: 0.05,
-    metalness: 0.0,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.03,
-    transmission: 1.0,
-    ior: 1.45,
-    thickness: 0.5,
-    transparent: true,
+    roughness: 0,
+    metalness: 0,
+    transmission: 1,
+    ior: 1.5,
+    thickness: 0.6,
     color: '#ffffff',
-    envMapIntensity: 2.5,
+    envMapIntensity: 1,
+    attenuationColor: '#7eb4f2',
+    attenuationDistance: 0.5,
+    specularIntensity: 1,
+    specularColor: '#ffffff',
   },
 };
 
@@ -263,11 +265,13 @@ function blurAlpha(src: Float32Array, size: number, radius: number): Float32Arra
 interface DiceTextures {
   map: THREE.CanvasTexture;
   normalMap: THREE.CanvasTexture | null;
+  roughnessMap: THREE.CanvasTexture | null;
   transmissionMap: THREE.CanvasTexture | null;
 }
 
-// Generate a transmission map from alpha: white where transparent (glass), black where opaque (design)
-function createTransmissionMapFromAlpha(img: HTMLImageElement): THREE.CanvasTexture {
+// Create a grayscale texture from an image's alpha channel.
+// Maps alpha > threshold to `designVal`, alpha <= threshold to `bgVal`.
+function createAlphaMapTexture(img: HTMLImageElement, designVal: number, bgVal: number): THREE.CanvasTexture {
   const size = 512;
   const srcCanvas = document.createElement('canvas');
   srcCanvas.width = size;
@@ -283,10 +287,7 @@ function createTransmissionMapFromAlpha(img: HTMLImageElement): THREE.CanvasText
   const outData = outCtx.createImageData(size, size);
 
   for (let i = 0; i < size * size; i++) {
-    const alpha = srcData.data[i * 4 + 3]; // 0 = transparent, 255 = opaque
-    // Binary threshold: any pixel with alpha > 10 is fully opaque (black = block transmission)
-    // This prevents semi-transparent PNG pixels from creating partial transmission
-    const val = alpha > 10 ? 0 : 255;
+    const val = srcData.data[i * 4 + 3] > 10 ? designVal : bgVal;
     outData.data[i * 4]     = val;
     outData.data[i * 4 + 1] = val;
     outData.data[i * 4 + 2] = val;
@@ -299,38 +300,74 @@ function createTransmissionMapFromAlpha(img: HTMLImageElement): THREE.CanvasText
   return texture;
 }
 
-// Create textures for a dice face: color map + normal map from alpha + optional transmission map
+// Glass design tint color — used for the face design areas on glass dice.
+// This gives the designs a visible color that's independent of what's behind the glass.
+const GLASS_DESIGN_TINT = '#a8d4f0'; // light icy blue
+
+// Create textures for a dice face.
+// Glass: designs are tinted markings on clear glass. The transmissionMap reduces transmission
+// on design areas so their tint color is visible. The roughnessMap adds a frosted etch effect.
+// Non-glass: solid dice set background color with designs drawn on top.
 export function createDiceTexture(
   value: string,
   diceSet: DiceSetId = 'alpha',
-  needsTransmissionMap = false,
+  isGlass = false,
 ): DiceTextures {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext('2d')!;
 
-  // Background color per dice set
-  ctx.fillStyle = DICE_SET_BG_COLORS[diceSet];
-  ctx.fillRect(0, 0, 512, 512);
-
   // Draw cached PNG if available
   const imageUrl = DICE_SETS[diceSet]?.[value];
   const img = imageUrl ? imageCache[imageUrl] : null;
-  if (img) {
-    ctx.drawImage(img, 0, 0, 512, 512);
+
+  if (isGlass) {
+    if (img) {
+      // Build tinted design on a SEPARATE canvas (starts transparent),
+      // then composite onto white background.
+      const tintCanvas = document.createElement('canvas');
+      tintCanvas.width = 512;
+      tintCanvas.height = 512;
+      const tintCtx = tintCanvas.getContext('2d')!;
+
+      // 1. Draw PNG design (white pixels with alpha, transparent background)
+      tintCtx.drawImage(img, 0, 0, 512, 512);
+      // 2. Tint: source-atop only draws where existing alpha > 0 (the design)
+      tintCtx.globalCompositeOperation = 'source-atop';
+      tintCtx.fillStyle = GLASS_DESIGN_TINT;
+      tintCtx.fillRect(0, 0, 512, 512);
+
+      // 3. White background on the main canvas, then draw tinted design on top
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 512, 512);
+      ctx.drawImage(tintCanvas, 0, 0);
+    } else {
+      // No image loaded yet — just white
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 512, 512);
+    }
+  } else {
+    // Non-glass: solid background with design drawn on top
+    ctx.fillStyle = DICE_SET_BG_COLORS[diceSet];
+    ctx.fillRect(0, 0, 512, 512);
+    if (img) {
+      ctx.drawImage(img, 0, 0, 512, 512);
+    }
   }
 
   const map = new THREE.CanvasTexture(canvas);
   map.needsUpdate = true;
 
-  // Generate normal map from the PNG's alpha channel
+  // Generate normal map from the PNG's alpha channel (works for both glass and non-glass)
   const normalMap = img ? createNormalMapFromAlpha(img) : null;
 
-  // Generate transmission map for glass materials (white=transmit, black=opaque design)
-  const transmissionMap = (img && needsTransmissionMap) ? createTransmissionMapFromAlpha(img) : null;
+  // Glass: roughnessMap (frosted etch on designs) + transmissionMap (reduced transmission on designs)
+  // roughnessMap: design=100 (frosted), bg=0 (smooth). transmissionMap: design=128 (half), bg=255 (full).
+  const roughnessMap = (img && isGlass) ? createAlphaMapTexture(img, 100, 0) : null;
+  const transmissionMap = (img && isGlass) ? createAlphaMapTexture(img, 128, 255) : null;
 
-  return { map, normalMap, transmissionMap };
+  return { map, normalMap, roughnessMap, transmissionMap };
 }
 
 // Preload all dice set PNG images - must be called before rendering
@@ -361,17 +398,19 @@ export async function preloadAllDiceSets(): Promise<void> {
 // Mapped to: 10, K, 9, A, J, Q
 export const FACE_VALUES = ['10', 'K', '9', 'A', 'J', 'Q'];
 
-// Optional glass debug overrides
+// Glass debug overrides — controls exposed in the Leva debug panel.
+// Note: roughness is not here because it's controlled by the roughnessMap (frosted etch).
 export interface GlassOverrides {
-  roughness: number;
   metalness: number;
-  clearcoat: number;
-  clearcoatRoughness: number;
   transmission: number;
   ior: number;
   thickness: number;
   color: string;
   envMapIntensity: number;
+  attenuationColor: string;
+  attenuationDistance: number;
+  specularIntensity: number;
+  specularColor: string;
 }
 
 // Create materials for all six faces with specified material preset and dice set
@@ -386,23 +425,24 @@ export function createDiceMaterials(
   if (preset === 'glass' && glassOverrides) {
     materialProps = {
       ...materialProps,
-      roughness: glassOverrides.roughness,
       metalness: glassOverrides.metalness,
-      clearcoat: glassOverrides.clearcoat,
-      clearcoatRoughness: glassOverrides.clearcoatRoughness,
       transmission: glassOverrides.transmission,
       ior: glassOverrides.ior,
       thickness: glassOverrides.thickness,
       color: glassOverrides.color,
       envMapIntensity: glassOverrides.envMapIntensity,
+      attenuationColor: glassOverrides.attenuationColor,
+      attenuationDistance: glassOverrides.attenuationDistance,
+      specularIntensity: glassOverrides.specularIntensity,
+      specularColor: glassOverrides.specularColor,
     };
   }
 
   const usePhysical = materialProps.clearcoat !== undefined || materialProps.transmission !== undefined;
-  const needsTransmissionMap = materialProps.transmission !== undefined;
+  const isGlass = preset === 'glass';
 
   return FACE_VALUES.map((value) => {
-    const { map, normalMap, transmissionMap } = createDiceTexture(value, diceSet, needsTransmissionMap);
+    const { map, normalMap, roughnessMap, transmissionMap } = createDiceTexture(value, diceSet, isGlass);
     const normalProps = normalMap ? {
       normalMap,
       normalScale: new THREE.Vector2(NORMAL_SCALE, NORMAL_SCALE),
@@ -419,15 +459,18 @@ export function createDiceMaterials(
         ...(materialProps.transmission !== undefined && {
           transmission: materialProps.transmission,
           ior: materialProps.ior ?? 1.5,
-          thickness: materialProps.thickness ?? 0.5,
-          ...(transmissionMap && { transmissionMap }),
+          thickness: materialProps.thickness ?? 0.01,
         }),
-        ...(materialProps.transparent && { transparent: true }),
-        ...(materialProps.opacity !== undefined && { opacity: materialProps.opacity }),
+        // Glass: roughnessMap for frosted etch, transmissionMap for partial design visibility.
+        // roughnessMap overrides base roughness to 1 so the map has full control.
+        ...(roughnessMap && { roughnessMap, roughness: 1 }),
+        ...(transmissionMap && { transmissionMap }),
         ...(materialProps.color && { color: materialProps.color }),
         ...(materialProps.envMapIntensity !== undefined && { envMapIntensity: materialProps.envMapIntensity }),
-        ...(materialProps.emissive && { emissive: new THREE.Color(materialProps.emissive) }),
-        ...(materialProps.emissiveIntensity !== undefined && { emissiveIntensity: materialProps.emissiveIntensity }),
+        ...(materialProps.attenuationColor && { attenuationColor: new THREE.Color(materialProps.attenuationColor) }),
+        ...(materialProps.attenuationDistance !== undefined && { attenuationDistance: materialProps.attenuationDistance }),
+        ...(materialProps.specularIntensity !== undefined && { specularIntensity: materialProps.specularIntensity }),
+        ...(materialProps.specularColor && { specularColor: new THREE.Color(materialProps.specularColor) }),
         ...normalProps,
       });
     } else {

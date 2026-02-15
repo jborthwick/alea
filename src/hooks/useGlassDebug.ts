@@ -2,15 +2,16 @@ import { useRef, useEffect } from 'react';
 import { useControls, folder, button } from 'leva';
 
 const DEFAULTS = {
-  roughness: 0.05,
-  metalness: 0.0,
-  clearcoat: 1.0,
-  clearcoatRoughness: 0.03,
-  transmission: 0.7,
-  ior: 1.45,
-  thickness: 0.7,
+  metalness: 0,
+  transmission: 1,
+  ior: 1.5,
+  thickness: 0.6,
   color: '#ffffff',
-  envMapIntensity: 2.5,
+  envMapIntensity: 1,
+  attenuationColor: '#7eb4f2',
+  attenuationDistance: 0.5,
+  specularIntensity: 1,
+  specularColor: '#ffffff',
 };
 
 export type GlassDebugValues = typeof DEFAULTS;
@@ -31,39 +32,40 @@ export function useGlassDebug() {
   const setRef = useRef<((values: Record<string, unknown>) => void) | null>(null);
 
   const [values, set] = useControls('Glass Material', () => ({
-    'Surface': folder({
-      roughness: { value: DEFAULTS.roughness, min: 0, max: 1, step: 0.01, label: d('Roughness', DEFAULTS.roughness) },
-      metalness: { value: DEFAULTS.metalness, min: 0, max: 1, step: 0.01, label: d('Metalness', DEFAULTS.metalness) },
-      clearcoat: { value: DEFAULTS.clearcoat, min: 0, max: 1, step: 0.01, label: d('Clearcoat', DEFAULTS.clearcoat) },
-      clearcoatRoughness: { value: DEFAULTS.clearcoatRoughness, min: 0, max: 1, step: 0.01, label: d('CC Rough', DEFAULTS.clearcoatRoughness) },
-      'Reset Surface': button(() => { setRef.current?.(pick(['roughness', 'metalness', 'clearcoat', 'clearcoatRoughness'])); }),
-    }),
-    'Transparency': folder({
+    'Transmission': folder({
       transmission: { value: DEFAULTS.transmission, min: 0, max: 1, step: 0.01, label: d('Transmission', DEFAULTS.transmission) },
       ior: { value: DEFAULTS.ior, min: 1.0, max: 2.5, step: 0.01, label: d('IOR', DEFAULTS.ior) },
-      thickness: { value: DEFAULTS.thickness, min: 0, max: 2, step: 0.05, label: d('Thickness', DEFAULTS.thickness) },
-      'Reset Transparency': button(() => { setRef.current?.(pick(['transmission', 'ior', 'thickness'])); }),
+      thickness: { value: DEFAULTS.thickness, min: 0, max: 5, step: 0.01, label: d('Thickness', DEFAULTS.thickness) },
+      attenuationColor: { value: DEFAULTS.attenuationColor, label: 'Atten Color' },
+      attenuationDistance: { value: DEFAULTS.attenuationDistance, min: 0, max: 2, step: 0.01, label: d('Atten Dist', DEFAULTS.attenuationDistance) },
+      'Reset Transmission': button(() => { setRef.current?.(pick(['transmission', 'ior', 'thickness', 'attenuationColor', 'attenuationDistance'])); }),
+    }),
+    'Specular': folder({
+      specularIntensity: { value: DEFAULTS.specularIntensity, min: 0, max: 1, step: 0.01, label: d('Intensity', DEFAULTS.specularIntensity) },
+      specularColor: { value: DEFAULTS.specularColor, label: 'Color' },
+      'Reset Specular': button(() => { setRef.current?.(pick(['specularIntensity', 'specularColor'])); }),
     }),
     'Appearance': folder({
+      metalness: { value: DEFAULTS.metalness, min: 0, max: 1, step: 0.01, label: d('Metalness', DEFAULTS.metalness) },
       color: { value: DEFAULTS.color, label: 'Color' },
       envMapIntensity: { value: DEFAULTS.envMapIntensity, min: 0, max: 5, step: 0.1, label: d('Env Map', DEFAULTS.envMapIntensity) },
-      'Reset Appearance': button(() => { setRef.current?.(pick(['color', 'envMapIntensity'])); }),
+      'Reset Appearance': button(() => { setRef.current?.(pick(['metalness', 'color', 'envMapIntensity'])); }),
     }),
     'Reset All': button(() => { setRef.current?.(DEFAULTS); }),
     'Copy Values': button((get) => {
       const v = get as unknown as Record<string, number | string>;
       const code = `// Glass material preset
 glass: {
-  roughness: ${v['Surface.roughness']},
-  metalness: ${v['Surface.metalness']},
-  clearcoat: ${v['Surface.clearcoat']},
-  clearcoatRoughness: ${v['Surface.clearcoatRoughness']},
-  transmission: ${v['Transparency.transmission']},
-  ior: ${v['Transparency.ior']},
-  thickness: ${v['Transparency.thickness']},
-  transparent: true,
+  metalness: ${v['Appearance.metalness']},
+  transmission: ${v['Transmission.transmission']},
+  ior: ${v['Transmission.ior']},
+  thickness: ${v['Transmission.thickness']},
   color: '${v['Appearance.color']}',
   envMapIntensity: ${v['Appearance.envMapIntensity']},
+  attenuationColor: '${v['Transmission.attenuationColor']}',
+  attenuationDistance: ${v['Transmission.attenuationDistance']},
+  specularIntensity: ${v['Specular.specularIntensity']},
+  specularColor: '${v['Specular.specularColor']}',
 },`;
 
       navigator.clipboard.writeText(code).then(() => {

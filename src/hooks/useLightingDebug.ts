@@ -11,16 +11,16 @@ import {
   FILL_LIGHT_POS_X,
   FILL_LIGHT_POS_Y,
   FILL_LIGHT_POS_Z,
+  OPP_LIGHT_INTENSITY,
+  OPP_LIGHT_POS_X,
+  OPP_LIGHT_POS_Y,
+  OPP_LIGHT_POS_Z,
+  OPP_LIGHT_DECAY,
   SPOT_INTENSITY,
   SPOT_HEIGHT,
   SPOT_ANGLE,
   SPOT_PENUMBRA,
   SPOT_DECAY,
-  BACK_LIGHT_INTENSITY,
-  BACK_LIGHT_POS_X,
-  BACK_LIGHT_POS_Y,
-  BACK_LIGHT_POS_Z,
-  BACK_LIGHT_DECAY,
   ENV_INTENSITY,
 } from '../game/constants';
 
@@ -35,16 +35,16 @@ const DEFAULTS = {
   fillPosX: FILL_LIGHT_POS_X,
   fillPosY: FILL_LIGHT_POS_Y,
   fillPosZ: FILL_LIGHT_POS_Z,
+  oppLightIntensity: OPP_LIGHT_INTENSITY,
+  oppLightPosX: OPP_LIGHT_POS_X,
+  oppLightPosY: OPP_LIGHT_POS_Y,
+  oppLightPosZ: OPP_LIGHT_POS_Z,
+  oppLightDecay: OPP_LIGHT_DECAY,
   spotIntensity: SPOT_INTENSITY,
   spotHeight: SPOT_HEIGHT,
   spotAngle: SPOT_ANGLE,
   spotPenumbra: SPOT_PENUMBRA,
   spotDecay: SPOT_DECAY,
-  backIntensity: BACK_LIGHT_INTENSITY,
-  backPosX: BACK_LIGHT_POS_X,
-  backPosY: BACK_LIGHT_POS_Y,
-  backPosZ: BACK_LIGHT_POS_Z,
-  backDecay: BACK_LIGHT_DECAY,
   envIntensity: ENV_INTENSITY,
 };
 
@@ -85,6 +85,14 @@ export function useLightingDebug() {
       fillPosZ: { value: DEFAULTS.fillPosZ, min: -15, max: 15, step: 0.5, label: d('Z', DEFAULTS.fillPosZ) },
       'Reset Fill': button(() => { setRef.current?.(pick(['fillIntensity', 'fillPosX', 'fillPosY', 'fillPosZ'])); }),
     }),
+    'Opponent Light': folder({
+      oppLightIntensity: { value: DEFAULTS.oppLightIntensity, min: 0, max: 20, step: 0.5, label: d('Intensity', DEFAULTS.oppLightIntensity) },
+      oppLightPosX: { value: DEFAULTS.oppLightPosX, min: -15, max: 15, step: 0.5, label: d('X', DEFAULTS.oppLightPosX) },
+      oppLightPosY: { value: DEFAULTS.oppLightPosY, min: 0, max: 15, step: 0.5, label: d('Y', DEFAULTS.oppLightPosY) },
+      oppLightPosZ: { value: DEFAULTS.oppLightPosZ, min: -10, max: 0, step: 0.5, label: d('Z', DEFAULTS.oppLightPosZ) },
+      oppLightDecay: { value: DEFAULTS.oppLightDecay, min: 0, max: 3, step: 0.1, label: d('Decay', DEFAULTS.oppLightDecay) },
+      'Reset Opp': button(() => { setRef.current?.(pick(['oppLightIntensity', 'oppLightPosX', 'oppLightPosY', 'oppLightPosZ', 'oppLightDecay'])); }),
+    }),
     'Spotlight': folder({
       spotIntensity: { value: DEFAULTS.spotIntensity, min: 0, max: 5, step: 0.1, label: d('Intensity', DEFAULTS.spotIntensity) },
       spotHeight: { value: DEFAULTS.spotHeight, min: 3, max: 25, step: 0.5, label: d('Height', DEFAULTS.spotHeight) },
@@ -92,14 +100,6 @@ export function useLightingDebug() {
       spotPenumbra: { value: DEFAULTS.spotPenumbra, min: 0, max: 1, step: 0.05, label: d('Penumbra', DEFAULTS.spotPenumbra) },
       spotDecay: { value: DEFAULTS.spotDecay, min: 0, max: 3, step: 0.1, label: d('Decay', DEFAULTS.spotDecay) },
       'Reset Spot': button(() => { setRef.current?.(pick(['spotIntensity', 'spotHeight', 'spotAngle', 'spotPenumbra', 'spotDecay'])); }),
-    }),
-    'Backlight': folder({
-      backIntensity: { value: DEFAULTS.backIntensity, min: 0, max: 5, step: 0.1, label: d('Intensity', DEFAULTS.backIntensity) },
-      backPosX: { value: DEFAULTS.backPosX, min: -15, max: 15, step: 0.5, label: d('X', DEFAULTS.backPosX) },
-      backPosY: { value: DEFAULTS.backPosY, min: 0, max: 15, step: 0.5, label: d('Y', DEFAULTS.backPosY) },
-      backPosZ: { value: DEFAULTS.backPosZ, min: -20, max: 0, step: 0.5, label: d('Z', DEFAULTS.backPosZ) },
-      backDecay: { value: DEFAULTS.backDecay, min: 0, max: 3, step: 0.1, label: d('Decay', DEFAULTS.backDecay) },
-      'Reset Back': button(() => { setRef.current?.(pick(['backIntensity', 'backPosX', 'backPosY', 'backPosZ', 'backDecay'])); }),
     }),
     'Environment': folder({
       envIntensity: { value: DEFAULTS.envIntensity, min: 0, max: 2, step: 0.05, label: d('Intensity', DEFAULTS.envIntensity) },
@@ -122,18 +122,18 @@ export const FILL_LIGHT_INTENSITY = ${v['Fill Light.fillIntensity']};
 export const FILL_LIGHT_POS_X = ${v['Fill Light.fillPosX']};
 export const FILL_LIGHT_POS_Y = ${v['Fill Light.fillPosY']};
 export const FILL_LIGHT_POS_Z = ${v['Fill Light.fillPosZ']};
+// Opponent point light
+export const OPP_LIGHT_INTENSITY = ${v['Opponent Light.oppLightIntensity']};
+export const OPP_LIGHT_POS_X = ${v['Opponent Light.oppLightPosX']};
+export const OPP_LIGHT_POS_Y = ${v['Opponent Light.oppLightPosY']};
+export const OPP_LIGHT_POS_Z = ${v['Opponent Light.oppLightPosZ']};
+export const OPP_LIGHT_DECAY = ${v['Opponent Light.oppLightDecay']};
 // Spotlight
 export const SPOT_INTENSITY = ${v['Spotlight.spotIntensity']};
 export const SPOT_HEIGHT = ${v['Spotlight.spotHeight']};
 export const SPOT_ANGLE = ${v['Spotlight.spotAngle']};
 export const SPOT_PENUMBRA = ${v['Spotlight.spotPenumbra']};
 export const SPOT_DECAY = ${v['Spotlight.spotDecay']};
-// Backlight
-export const BACK_LIGHT_INTENSITY = ${v['Backlight.backIntensity']};
-export const BACK_LIGHT_POS_X = ${v['Backlight.backPosX']};
-export const BACK_LIGHT_POS_Y = ${v['Backlight.backPosY']};
-export const BACK_LIGHT_POS_Z = ${v['Backlight.backPosZ']};
-export const BACK_LIGHT_DECAY = ${v['Backlight.backDecay']};
 // Environment
 export const ENV_INTENSITY = ${v['Environment.envIntensity']};`;
 

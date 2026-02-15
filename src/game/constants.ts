@@ -150,9 +150,9 @@ export function resetDefaultTheme() {
 
 // Lighting constants
 // Ambient
-export const AMBIENT_INTENSITY = 0.35;
+export const AMBIENT_INTENSITY = 0.7;
 // Main directional (shadow-casting)
-export const MAIN_LIGHT_INTENSITY = 1.6;
+export const MAIN_LIGHT_INTENSITY = 2.0;
 export const MAIN_LIGHT_COLOR = '#FFFAF0';
 export const MAIN_LIGHT_POS_X = 6;
 export const MAIN_LIGHT_POS_Y = 6;
@@ -162,18 +162,18 @@ export const FILL_LIGHT_INTENSITY = 0.3;
 export const FILL_LIGHT_POS_X = -3;
 export const FILL_LIGHT_POS_Y = 8;
 export const FILL_LIGHT_POS_Z = -3;
+// Opponent point light (underneath glass dice, shines up through them)
+export const OPP_LIGHT_INTENSITY = 6;
+export const OPP_LIGHT_POS_X = 0;
+export const OPP_LIGHT_POS_Y = 0.5;
+export const OPP_LIGHT_POS_Z = -3.8;
+export const OPP_LIGHT_DECAY = 0.6;
 // Overhead spotlight (vignette)
 export const SPOT_INTENSITY = 2.0;
 export const SPOT_HEIGHT = 12;
 export const SPOT_ANGLE = Math.PI / 6;
 export const SPOT_PENUMBRA = 1.0;
 export const SPOT_DECAY = 1.5;
-// Backlight (accent-colored point light behind table)
-export const BACK_LIGHT_INTENSITY = 3.0;
-export const BACK_LIGHT_POS_X = 0;
-export const BACK_LIGHT_POS_Y = 1;
-export const BACK_LIGHT_POS_Z = -6;
-export const BACK_LIGHT_DECAY = 1.5;
 // Environment
 export const ENV_INTENSITY = 0.8;
 

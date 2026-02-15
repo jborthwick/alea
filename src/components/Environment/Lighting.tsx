@@ -58,6 +58,15 @@ export function Lighting({ tiltX = 0, tiltY = 0, debug }: LightingProps) {
         color={tableConfig.fillColor}
       />
 
+      {/* Point light near opponent dice — illuminates backdrop for glass transmission */}
+      <pointLight
+        position={[debug.oppLightPosX, debug.oppLightPosY, debug.oppLightPosZ]}
+        intensity={debug.oppLightIntensity}
+        color={tableConfig.fillColor}
+        decay={debug.oppLightDecay}
+        castShadow={false}
+      />
+
       {/* Overhead spotlight - color from table theme */}
       <spotLight
         position={[0, debug.spotHeight, 0]}
