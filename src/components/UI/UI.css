@@ -61,12 +61,8 @@
 
 .hand-result.final {
   background: rgba(0, 0, 0, 0.6);
-  transition: all 0.5s ease;
-}
-
-.hand-result.final.expanded {
-  transform: scale(1.05);
   padding: 1.25rem;
+  animation: fadeIn 0.5s ease-in;
 }
 
 .hand-result.win {
@@ -142,54 +138,9 @@
   font-weight: bold;
 }
 
-/* Hand comparison layout (during scoring) */
-.hand-comparison-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.15rem;
-  margin-bottom: 0.4rem;
-}
-
-.hand-comparison {
-  text-align: center;
-}
-
-.hand-comparison .hand-name {
-  margin: 0;
-}
-
-/* Opponent hand smaller */
-.hand-comparison.opponent .hand-name {
-  font-size: 1rem;
-}
-
-/* Player hand bigger (keep default 1.25rem from .hand-name) */
-.hand-comparison.player .hand-name {
-  font-size: 1.5rem;
-}
-
-.hand-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgb(var(--accent));
-  margin-bottom: 0.1rem;
-}
-
-.vs-divider {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0.15rem 0;
-}
-
 .outcome-text {
   font-size: 1.4rem;
   font-weight: bold;
-  margin-top: 0.4rem;
-  animation: fadeIn 0.5s ease-in;
 }
 
 .outcome-text.win { color: rgb(var(--accent)); }

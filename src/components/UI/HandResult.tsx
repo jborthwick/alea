@@ -1,5 +1,5 @@
 import { useGameStore } from '../../store/gameStore';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAudio } from '../../hooks/useAudio';
 import { useHaptics } from '../../hooks/useHaptics';
 import './UI.css';
@@ -42,18 +42,11 @@ export function HandResult() {
   const { playWin, playLose } = useAudio();
   const { vibrateWin, vibrateLose } = useHaptics();
   const hasPlayedSound = useRef(false);
-  const [showOutcome, setShowOutcome] = useState(false);
 
   useEffect(() => {
     if (gamePhase === 'scoring' && !hasPlayedSound.current) {
       hasPlayedSound.current = true;
 
-      // Delay showing the outcome message by 1.5 seconds
-      const outcomeTimer = setTimeout(() => {
-        setShowOutcome(true);
-      }, 1500);
-
-      // Play sound/haptics immediately
       if (roundOutcome === 'win') {
         playWin();
         vibrateWin();
@@ -61,15 +54,10 @@ export function HandResult() {
         playLose();
         vibrateLose();
       }
-
-      return () => clearTimeout(outcomeTimer);
     }
 
     if (gamePhase !== 'scoring') {
       hasPlayedSound.current = false;
-      // Reset outcome visibility when leaving scoring phase
-      // Wrapped in microtask to avoid synchronous setState in effect body
-      queueMicrotask(() => setShowOutcome(false));
     }
   }, [gamePhase, roundOutcome, playWin, playLose, vibrateWin, vibrateLose]);
 
@@ -79,22 +67,18 @@ export function HandResult() {
   const outcomeClass = roundOutcome === 'win' ? 'win' : roundOutcome === 'lose' ? 'lose' : 'tie';
 
   return (
-    <div className={`hand-result final ${outcomeClass} ${showOutcome ? 'expanded' : ''}`}>
-      {showOutcome && (
-        <>
-          <div className={`outcome-text ${outcomeClass}`}>
-            {roundOutcome === 'win' ? 'You win!' : roundOutcome === 'lose' ? 'Dealer wins!' : 'Push'}
-          </div>
-          {roundOutcome === 'win' && (
-            <div className="win-amount positive">+${lastWin}</div>
-          )}
-          {roundOutcome === 'tie' && (
-            <div className="win-amount tie">Bet returned</div>
-          )}
-          {roundOutcome === 'lose' && (
-            <div className="win-amount negative">-${currentBet}</div>
-          )}
-        </>
+    <div className={`hand-result final expanded ${outcomeClass}`}>
+      <div className={`outcome-text ${outcomeClass}`}>
+        {roundOutcome === 'win' ? 'You win!' : roundOutcome === 'lose' ? 'Dealer wins!' : 'Push'}
+      </div>
+      {roundOutcome === 'win' && (
+        <div className="win-amount positive">+${lastWin}</div>
+      )}
+      {roundOutcome === 'tie' && (
+        <div className="win-amount tie">Bet returned</div>
+      )}
+      {roundOutcome === 'lose' && (
+        <div className="win-amount negative">-${currentBet}</div>
       )}
     </div>
   );
