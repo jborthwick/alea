@@ -11,3 +11,8 @@
 .game-container-ready {
   opacity: 1;
 }
+
+/* Prevent mobile browser from stealing touch events during grab-and-throw */
+.game-container canvas {
+  touch-action: none;
+}
