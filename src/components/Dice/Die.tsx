@@ -120,7 +120,7 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     return () => releaseDiceMaterials(effectiveMaterial, diceSet);
   }, [effectiveMaterial, diceSet]);
 
-  // Apply glass debug overrides in-place (no material recreation, just property updates)
+  // Apply glass debug overrides in-place (no texture recreation, just property updates)
   useEffect(() => {
     if (effectiveMaterial === 'glass' && glassDebug) {
       applyGlassOverrides(materials, glassDebug);

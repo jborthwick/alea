@@ -2,14 +2,14 @@ import { useRef, useEffect } from 'react';
 import { useControls, folder, button } from 'leva';
 
 const DEFAULTS = {
-  metalness: 0,
+  metalness: 0.05,
   transmission: 1,
   ior: 1.5,
-  thickness: 0.6,
+  thickness: 1.2,
   color: '#ffffff',
-  envMapIntensity: 1,
-  attenuationColor: '#7eb4f2',
-  attenuationDistance: 0.5,
+  envMapIntensity: 1.5,
+  attenuationColor: '#53d5fd',
+  attenuationDistance: 0.4,
   specularIntensity: 1,
   specularColor: '#ffffff',
 };

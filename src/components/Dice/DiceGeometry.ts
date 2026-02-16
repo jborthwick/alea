@@ -70,18 +70,19 @@ export const DICE_MATERIAL_PRESETS: Record<DiceMaterialPreset, MaterialPropertie
     clearcoat: 0.8,
     clearcoatRoughness: 0.05,
   },
-  // Transparent glass — modeled after Three.js transmission alpha example
-  // Blue tint via attenuation (like bluejay accent #468CDC)
+  // Transparent glass — color stays white so face designs render white.
+  // Glass body tint comes from attenuationColor (only affects transmitted light,
+  // not the opaque design surfaces). Lower thickness = brighter colors.
   glass: {
-    roughness: 0,
-    metalness: 0,
+    roughness: 0.08,
+    metalness: 0.05,
     transmission: 1,
     ior: 1.5,
-    thickness: 0.6,
+    thickness: 1.2,
     color: '#ffffff',
-    envMapIntensity: 1,
-    attenuationColor: '#7eb4f2',
-    attenuationDistance: 0.5,
+    envMapIntensity: 1.5,
+    attenuationColor: '#53d5fd',
+    attenuationDistance: 0.4,
     specularIntensity: 1,
     specularColor: '#ffffff',
   },
@@ -304,13 +305,10 @@ function createAlphaMapTexture(img: HTMLImageElement, designVal: number, bgVal: 
   return texture;
 }
 
-// Glass design tint color — used for the face design areas on glass dice.
-// This gives the designs a visible color that's independent of what's behind the glass.
-const GLASS_DESIGN_TINT = '#a8d4f0'; // light icy blue
-
 // Create textures for a dice face.
-// Glass: designs are tinted markings on clear glass. The transmissionMap reduces transmission
-// on design areas so their tint color is visible. The roughnessMap adds a frosted etch effect.
+// Glass: plain white color map — design visibility comes from the transmissionMap
+// (reduces transmission on design areas) and roughnessMap (frosted etch). The material's
+// own `color` property controls the glass body tint (like the Three.js dragon example).
 // Non-glass: solid dice set background color with designs drawn on top.
 export function createDiceTexture(
   value: string,
@@ -327,30 +325,11 @@ export function createDiceTexture(
   const img = imageUrl ? imageCache[imageUrl] : null;
 
   if (isGlass) {
-    if (img) {
-      // Build tinted design on a SEPARATE canvas (starts transparent),
-      // then composite onto white background.
-      const tintCanvas = document.createElement('canvas');
-      tintCanvas.width = 512;
-      tintCanvas.height = 512;
-      const tintCtx = tintCanvas.getContext('2d')!;
-
-      // 1. Draw PNG design (white pixels with alpha, transparent background)
-      tintCtx.drawImage(img, 0, 0, 512, 512);
-      // 2. Tint: source-atop only draws where existing alpha > 0 (the design)
-      tintCtx.globalCompositeOperation = 'source-atop';
-      tintCtx.fillStyle = GLASS_DESIGN_TINT;
-      tintCtx.fillRect(0, 0, 512, 512);
-
-      // 3. White background on the main canvas, then draw tinted design on top
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 512, 512);
-      ctx.drawImage(tintCanvas, 0, 0);
-    } else {
-      // No image loaded yet — just white
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 512, 512);
-    }
+    // Plain white — the material `color` property tints the glass body,
+    // and transmissionMap/roughnessMap make designs visible through reduced
+    // transmission and frosted etching.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 512, 512);
   } else {
     // Non-glass: solid background with design drawn on top
     ctx.fillStyle = DICE_SET_BG_COLORS[diceSet];
@@ -482,7 +461,7 @@ export function releaseDiceMaterials(preset: DiceMaterialPreset, diceSet: DiceSe
   }
 }
 
-// Apply glass debug overrides to existing materials in-place (no texture recreation)
+// Apply glass debug overrides to existing materials in-place (no texture recreation needed).
 export function applyGlassOverrides(materials: THREE.Material[], overrides: GlassOverrides): void {
   for (const mat of materials) {
     if (mat instanceof THREE.MeshPhysicalMaterial) {
