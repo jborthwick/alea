@@ -4,7 +4,7 @@ import { RigidBody, RapierRigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three';
 import { useGameStore } from '../../store/gameStore';
 import { getFaceValue } from '../../physics/faceDetection';
-import { calculateRollImpulse } from '../../physics/impulseCalculator';
+import { calculateRollImpulse, calculateThrowImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry, releaseDiceMaterials, applyGlassOverrides } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
 import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS } from '../../game/constants';
@@ -18,15 +18,33 @@ interface DieProps {
   onSettle: (id: number, value: string) => void;
   rollTrigger: number;
   intensity?: number;
+  throwDirection?: THREE.Vector2 | null;
   canHold: boolean;
   onHold: (id: number) => void;
+  isGrabbing?: boolean;
+  grabTargetRef?: React.RefObject<THREE.Vector3 | null>;
 }
 
 // Ace face up: -Y axis points up, so rotate PI on X
 const ACE_UP_EULER: [number, number, number] = [Math.PI, 0, 0];
 const ACE_UP_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(...ACE_UP_EULER));
 
-export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHold }: DieProps) {
+// Reusable objects for useFrame hot path (avoid per-frame GC pressure)
+const _quat = new THREE.Quaternion();
+const _quatInv = new THREE.Quaternion();
+const _vec3A = new THREE.Vector3();
+const _vec3B = new THREE.Vector3();
+const _upWorld = new THREE.Vector3(0, 1, 0);
+const _faceAxes = [
+  new THREE.Vector3(1, 0, 0),
+  new THREE.Vector3(-1, 0, 0),
+  new THREE.Vector3(0, 1, 0),
+  new THREE.Vector3(0, -1, 0),
+  new THREE.Vector3(0, 0, 1),
+  new THREE.Vector3(0, 0, -1),
+];
+
+export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection, canHold, onHold, isGrabbing = false, grabTargetRef }: DieProps) {
   const { mass, restitution, friction, angularDamping, linearDamping, diceSize, diceMaterial, diceSet: debugDiceSet } = usePhysicsDebug();
   const glassDebug = useGlassDebug();
   const rigidBodyRef = useRef<RapierRigidBody>(null);
@@ -153,8 +171,16 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
         // Wake up the body first
         rb.wakeUp();
 
-        // Calculate impulse for this roll
-        const impulse = calculateRollImpulse(intensity, id);
+        // Calculate impulse — use directional throw if flick direction provided
+        const currentPos = rb.translation();
+        const impulse = throwDirection
+          ? calculateThrowImpulse(
+              intensity,
+              throwDirection,
+              id,
+              new THREE.Vector3(currentPos.x, currentPos.y, currentPos.z),
+            )
+          : calculateRollImpulse(intensity, id);
 
         // Reset position
         rb.setTranslation(
@@ -179,28 +205,63 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
         rb.wakeUp();
       }
     }
-  }, [rollTrigger, isHeld, id, intensity]);
+  }, [rollTrigger, isHeld, id, intensity, throwDirection]);
 
-  // Main frame loop: handles parking, transitions, and physics settling
-  useFrame((_, delta) => {
+  // Sync debug slider values to Rapier (only when values change, not every frame)
+  useEffect(() => {
     const rb = rigidBodyRef.current;
     if (!rb) return;
-
-    // Update physics properties from debug sliders (Rapier doesn't react to prop changes)
     rb.setLinearDamping(linearDamping);
     rb.setAngularDamping(angularDamping);
-    // Update collider properties
     const collider = rb.collider(0);
     if (collider) {
       collider.setRestitution(restitution);
       collider.setFriction(friction);
       collider.setMass(mass);
     }
+  }, [linearDamping, angularDamping, restitution, friction, mass]);
 
-    // Update mesh scale for dice size changes
+  // Main frame loop: handles parking, transitions, and physics settling
+  useFrame((_, delta) => {
+    const rb = rigidBodyRef.current;
+    if (!rb) return;
+
+    // Update mesh scale for dice size + hover changes
     if (meshRef.current) {
       const scale = (diceSize / DICE_SIZE) * (canHold && isHovered ? 1.08 : 1);
       meshRef.current.scale.setScalar(scale);
+    }
+
+    // Grab-and-throw: float dice upward and loosely track pointer
+    const grabTarget = grabTargetRef?.current;
+    if (isGrabbing && !isHeld && grabTarget) {
+      // Target: spread dice around the grab point by die index
+      const offsetX = (id - 2) * 0.7;
+      const targetX = grabTarget.x + offsetX;
+      const targetY = 2.0; // hover height
+      const targetZ = grabTarget.z;
+
+      const pos = rb.translation();
+      const lerpFactor = 0.08; // low = loose/floaty
+
+      rb.setTranslation({
+        x: pos.x + (targetX - pos.x) * lerpFactor,
+        y: pos.y + (targetY - pos.y) * lerpFactor,
+        z: pos.z + (targetZ - pos.z) * lerpFactor,
+      }, true);
+      rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+
+      // Gentle wobble for visual polish
+      const time = performance.now() / 1000;
+      rb.setAngvel({
+        x: Math.sin(time * 1.5 + id) * 0.5,
+        y: Math.cos(time * 1.05 + id) * 0.3,
+        z: Math.sin(time * 1.95 + id * 2) * 0.4,
+      }, true);
+
+      // Cancel any in-progress transition
+      isTransitioning.current = false;
+      return;
     }
 
     // Handle hold/unhold transitions
@@ -219,24 +280,16 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
       };
       const t = easeInOutCubic(transitionProgress.current);
 
-      // Interpolate position
+      // Interpolate position (reuse module-level temp objects)
       const targetPos = (isHeld || shouldBeInHoldTray) ? heldPosition : settledPosition.current;
-      const currentPos = new THREE.Vector3().lerpVectors(
-        transitionStartPos.current,
-        new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z),
-        t
-      );
+      _vec3A.set(targetPos.x, targetPos.y, targetPos.z);
+      _vec3B.lerpVectors(transitionStartPos.current, _vec3A, t);
 
       // Interpolate rotation (slerp for quaternions)
-      const targetRot = settledRotation.current;
-      const currentRot = new THREE.Quaternion().slerpQuaternions(
-        transitionStartRot.current,
-        targetRot,
-        t
-      );
+      _quat.slerpQuaternions(transitionStartRot.current, settledRotation.current, t);
 
-      rb.setTranslation({ x: currentPos.x, y: currentPos.y, z: currentPos.z }, true);
-      rb.setRotation({ x: currentRot.x, y: currentRot.y, z: currentRot.z, w: currentRot.w }, true);
+      rb.setTranslation({ x: _vec3B.x, y: _vec3B.y, z: _vec3B.z }, true);
+      rb.setRotation({ x: _quat.x, y: _quat.y, z: _quat.z, w: _quat.w }, true);
       rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
       rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
       return;
@@ -294,24 +347,16 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
     // When die is slow but not settled, apply corrective torque to snap to nearest face
     if (linearSpeed < 2 && angularSpeed < 3) {
       const rotation = rb.rotation();
-      const quaternion = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+      _quat.set(rotation.x, rotation.y, rotation.z, rotation.w);
 
-      const upWorld = new THREE.Vector3(0, 1, 0);
-      const upLocal = upWorld.clone().applyQuaternion(quaternion.clone().invert());
+      // Transform world up into local space to find nearest face
+      _quatInv.copy(_quat).invert();
+      _vec3A.copy(_upWorld).applyQuaternion(_quatInv);
 
-      const axes = [
-        new THREE.Vector3(1, 0, 0),
-        new THREE.Vector3(-1, 0, 0),
-        new THREE.Vector3(0, 1, 0),
-        new THREE.Vector3(0, -1, 0),
-        new THREE.Vector3(0, 0, 1),
-        new THREE.Vector3(0, 0, -1),
-      ];
-
-      let bestAxis = axes[0];
+      let bestAxis = _faceAxes[0];
       let bestDot = -Infinity;
-      for (const axis of axes) {
-        const dot = axis.dot(upLocal);
+      for (const axis of _faceAxes) {
+        const dot = axis.dot(_vec3A);
         if (dot > bestDot) {
           bestDot = dot;
           bestAxis = axis;
@@ -319,20 +364,20 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
       }
 
       if (bestDot < 0.99) {
-        const cross = new THREE.Vector3().crossVectors(bestAxis, upLocal);
+        _vec3B.crossVectors(bestAxis, _vec3A);
         const torqueStrength = (1 - bestDot) * 2;
-        const torqueWorld = cross.applyQuaternion(quaternion).multiplyScalar(torqueStrength);
-        rb.applyTorqueImpulse({ x: torqueWorld.x, y: torqueWorld.y, z: torqueWorld.z }, true);
+        _vec3B.applyQuaternion(_quat).multiplyScalar(torqueStrength);
+        rb.applyTorqueImpulse({ x: _vec3B.x, y: _vec3B.y, z: _vec3B.z }, true);
       }
     }
 
     // Check if die has settled
     if (linearSpeed < 0.1 && angularSpeed < 0.1 && pos.y <= maxValidHeight) {
       const rotation = rb.rotation();
-      const quaternion = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-      const faceValue = getFaceValue(quaternion);
+      _quat.set(rotation.x, rotation.y, rotation.z, rotation.w);
+      const faceValue = getFaceValue(_quat);
 
-      settledRotation.current.copy(quaternion);
+      settledRotation.current.copy(_quat);
       settledPosition.current.set(pos.x, pos.y, pos.z);
       isPhysicsActive.current = false;
       setIsSettled(true);
@@ -344,9 +389,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, canHold, onHol
   const initialPosition: [number, number, number] = [preRollPosition.x, preRollPosition.y, preRollPosition.z];
 
   // Common mesh props for interactivity
+  // onPointerDown stopPropagation prevents the grab gesture from starting when tapping a die
   const interactiveProps = canHold
     ? {
         onClick: handleClick,
+        onPointerDown: (e: { stopPropagation: () => void }) => e.stopPropagation(),
         onPointerOver: () => setIsHovered(true),
         onPointerOut: () => setIsHovered(false),
         style: { cursor: 'pointer' },

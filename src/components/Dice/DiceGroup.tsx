@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import * as THREE from 'three';
 import { Die } from './Die';
 import { useGameStore } from '../../store/gameStore';
 import type { CardValue } from '../../types/game';
@@ -8,9 +9,12 @@ import { useHaptics } from '../../hooks/useHaptics';
 interface DiceGroupProps {
   rollTrigger: number;
   intensity?: number;
+  throwDirection?: THREE.Vector2 | null;
+  isGrabbing?: boolean;
+  grabTargetRef?: React.RefObject<THREE.Vector3 | null>;
 }
 
-export function DiceGroup({ rollTrigger, intensity = 0.7 }: DiceGroupProps) {
+export function DiceGroup({ rollTrigger, intensity = 0.7, throwDirection, isGrabbing, grabTargetRef }: DiceGroupProps) {
   const dice = useGameStore((state) => state.dice);
   const updateDieValue = useGameStore((state) => state.updateDieValue);
   const finishRoll = useGameStore((state) => state.finishRoll);
@@ -94,8 +98,11 @@ export function DiceGroup({ rollTrigger, intensity = 0.7 }: DiceGroupProps) {
           onSettle={handleSettle}
           rollTrigger={rollTrigger}
           intensity={intensity}
+          throwDirection={throwDirection}
           canHold={canHold}
           onHold={handleHold}
+          isGrabbing={isGrabbing}
+          grabTargetRef={grabTargetRef}
         />
       ))}
     </group>

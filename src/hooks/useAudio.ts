@@ -77,6 +77,7 @@ export interface AudioHook {
   playRoll: () => void;
   playCollision: () => void;
   playHold: () => void;
+  playGrab: () => void;
   playWin: () => void;
   playLose: () => void;
   initAudio: () => void;
@@ -114,6 +115,13 @@ export function useAudio(): AudioHook {
     playTone(800, 0.08, 'sine', 0.2);
   }, [soundEnabled]);
 
+  const playGrab = useCallback(() => {
+    if (!soundEnabled) return;
+    // Soft rising tones for picking up dice
+    playTone(300, 0.12, 'sine', 0.15);
+    setTimeout(() => playTone(450, 0.1, 'sine', 0.12), 60);
+  }, [soundEnabled]);
+
   const playWin = useCallback(() => {
     if (!soundEnabled) return;
     // Happy ascending tones
@@ -134,6 +142,7 @@ export function useAudio(): AudioHook {
     playRoll,
     playCollision,
     playHold,
+    playGrab,
     playWin,
     playLose,
     initAudio,

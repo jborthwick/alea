@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import {
   MIN_ANGULAR_VELOCITY,
   MAX_ANGULAR_VELOCITY,
@@ -57,6 +57,56 @@ export function calculateRollImpulse(
     angularImpulse,
     startPosition,
   };
+}
+
+/**
+ * Generates roll parameters from a grab-and-throw gesture.
+ * Unlike calculateRollImpulse, the throw direction comes from the user's flick
+ * rather than being random. Angular impulse is still random for natural tumbling.
+ *
+ * @param intensity - Throw intensity 0-1 (from flick speed)
+ * @param direction - Normalized 2D screen-space direction of the flick.
+ *   Screen coords: X+ = right, Y+ = down. So flick up = (0, -1).
+ *   Maps to world: X → X, screen-Y → world-Z (negative Y → negative Z = back of table).
+ * @param dieIndex - Index of the die (for position spread)
+ * @param startPos - Optional current 3D position of the die (from grab hover)
+ */
+export function calculateThrowImpulse(
+  intensity: number,
+  direction: Vector2,
+  dieIndex: number,
+  startPos?: Vector3,
+): RollImpulse {
+  const clampedIntensity = Math.max(0.3, Math.min(1, intensity));
+
+  // Angular: same random tumbling as a regular roll
+  const angularMagnitude =
+    MIN_ANGULAR_VELOCITY +
+    (MAX_ANGULAR_VELOCITY - MIN_ANGULAR_VELOCITY) * clampedIntensity;
+
+  const angularImpulse = new Vector3(
+    (Math.random() - 0.5) * 2 * angularMagnitude,
+    (Math.random() - 0.5) * 2 * angularMagnitude,
+    (Math.random() - 0.5) * 2 * angularMagnitude
+  );
+
+  // Linear: map 2D flick direction to 3D world impulse
+  const baseImpulse = BASE_IMPULSE * clampedIntensity;
+  const variance = 1 + (Math.random() - 0.5) * IMPULSE_VARIANCE;
+
+  const linearImpulse = new Vector3(
+    direction.x * baseImpulse * 1.0,   // Screen X → World X (full directional energy)
+    baseImpulse * 0.45,                 // Upward arc (slightly higher for satisfying bounce)
+    direction.y * baseImpulse * 1.1     // Screen Y → World Z (neg = back of table)
+  ).multiplyScalar(variance);
+
+  // Start position: use current grab position if provided, else default spread
+  const spreadX = (dieIndex - 2) * 0.8 + (Math.random() - 0.5) * 0.3;
+  const startPosition = startPos
+    ? startPos.clone()
+    : new Vector3(spreadX, 2.0, 1.2);
+
+  return { linearImpulse, angularImpulse, startPosition };
 }
 
 /**

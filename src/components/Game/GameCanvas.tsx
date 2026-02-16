@@ -5,7 +5,7 @@ import { Leva } from 'leva';
 import { Suspense, useRef, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { DiceGroup } from '../Dice/DiceGroup';
+import { GrabGestureLayer } from '../Dice/GrabGestureLayer';
 import { OpponentDiceGroup } from '../Dice/OpponentDice';
 import { PlaySurface } from '../Environment/PlaySurface';
 import { Lighting } from '../Environment/Lighting';
@@ -18,9 +18,12 @@ import { OutlineProvider } from '../../contexts/OutlineContext';
 interface GameCanvasProps {
   rollTrigger: number;
   intensity?: number;
+  throwDirection?: THREE.Vector2 | null;
   tiltX?: number;
   tiltY?: number;
   onReady?: () => void;
+  onThrow?: (intensity: number, direction: THREE.Vector2) => void;
+  canRoll?: boolean;
 }
 
 // Fires onReady after the first frame renders (scene fully composed)
@@ -36,7 +39,7 @@ function ReadyNotifier({ onReady }: { onReady?: () => void }) {
 }
 
 // Inner scene component that can use leva hooks inside Canvas
-function Scene({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProps) {
+function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll = false }: GameCanvasProps) {
   const { gravity } = usePhysicsDebug();
   const lighting = useLightingDebug();
   const { addObject, removeObject } = useOutlineEffect();
@@ -49,7 +52,13 @@ function Scene({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProp
       <Physics gravity={[0, gravity, 0]} timeStep="vary">
         <Lighting tiltX={tiltX} tiltY={tiltY} debug={lighting} />
         <PlaySurface />
-        <DiceGroup rollTrigger={rollTrigger} intensity={intensity} />
+        <GrabGestureLayer
+          rollTrigger={rollTrigger}
+          intensity={intensity}
+          throwDirection={throwDirection}
+          canRoll={canRoll}
+          onThrow={onThrow ?? (() => {})}
+        />
         <OpponentDiceGroup />
         <ReadyNotifier onReady={onReady} />
       </Physics>
@@ -57,7 +66,7 @@ function Scene({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProp
   );
 }
 
-export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProps) {
+export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll }: GameCanvasProps) {
   const showDebugPanel = useGameStore((state) => state.showDebugPanel);
 
   // Use wider FOV on mobile to prevent dice cutoff
@@ -84,7 +93,7 @@ export function GameCanvas({ rollTrigger, intensity, tiltX, tiltY, onReady }: Ga
         style={{ background: 'rgb(var(--bg))' }}
       >
         <Suspense fallback={null}>
-          <Scene rollTrigger={rollTrigger} intensity={intensity} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} />
+          <Scene rollTrigger={rollTrigger} intensity={intensity} throwDirection={throwDirection} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} onThrow={onThrow} canRoll={canRoll} />
         </Suspense>
       </Canvas>
     </>

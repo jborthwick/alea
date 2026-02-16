@@ -19,6 +19,7 @@ export interface HapticsHook {
   vibrateCollision: () => void;
   vibrateRoll: () => void;
   vibrateHold: () => void;
+  vibrateGrab: () => void;
   vibrateWin: () => void;
   vibrateLose: () => void;
   isSupported: boolean;
@@ -45,6 +46,12 @@ export function useHaptics(): HapticsHook {
     vibrate(25);
   }, [soundEnabled]);
 
+  // Short pulse for grab pickup
+  const vibrateGrab = useCallback(() => {
+    if (!soundEnabled) return;
+    vibrate(20);
+  }, [soundEnabled]);
+
   // Happy pattern for winning
   const vibrateWin = useCallback(() => {
     if (!soundEnabled) return;
@@ -61,6 +68,7 @@ export function useHaptics(): HapticsHook {
     vibrateCollision,
     vibrateRoll,
     vibrateHold,
+    vibrateGrab,
     vibrateWin,
     vibrateLose,
     isSupported: canVibrate(),
