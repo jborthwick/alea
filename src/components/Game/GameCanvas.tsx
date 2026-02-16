@@ -45,7 +45,7 @@ function Scene({ rollTrigger, intensity, tiltX, tiltY, onReady }: GameCanvasProp
 
   return (
     <OutlineProvider value={outlineCtx}>
-      <Environment preset="night" environmentIntensity={lighting.envIntensity} />
+      <Environment preset={lighting.envPreset as 'night'} environmentIntensity={lighting.envIntensity} />
       <Physics gravity={[0, gravity, 0]} timeStep="vary">
         <Lighting tiltX={tiltX} tiltY={tiltY} debug={lighting} />
         <PlaySurface />

@@ -158,7 +158,7 @@ export const MAIN_LIGHT_POS_X = 6;
 export const MAIN_LIGHT_POS_Y = 6;
 export const MAIN_LIGHT_POS_Z = -4;
 // Fill directional
-export const FILL_LIGHT_INTENSITY = 0.3;
+export const FILL_LIGHT_INTENSITY = 0.8;
 export const FILL_LIGHT_POS_X = -3;
 export const FILL_LIGHT_POS_Y = 8;
 export const FILL_LIGHT_POS_Z = -3;

@@ -46,6 +46,7 @@ const DEFAULTS = {
   spotPenumbra: SPOT_PENUMBRA,
   spotDecay: SPOT_DECAY,
   envIntensity: ENV_INTENSITY,
+  envPreset: 'night' as string,
 };
 
 export type LightingDebugValues = typeof DEFAULTS;
@@ -102,8 +103,9 @@ export function useLightingDebug() {
       'Reset Spot': button(() => { setRef.current?.(pick(['spotIntensity', 'spotHeight', 'spotAngle', 'spotPenumbra', 'spotDecay'])); }),
     }),
     'Environment': folder({
+      envPreset: { value: DEFAULTS.envPreset, options: ['apartment', 'city', 'dawn', 'forest', 'lobby', 'night', 'park', 'studio', 'sunset', 'warehouse'], label: 'Preset' },
       envIntensity: { value: DEFAULTS.envIntensity, min: 0, max: 2, step: 0.05, label: d('Intensity', DEFAULTS.envIntensity) },
-      'Reset Env': button(() => { setRef.current?.(pick(['envIntensity'])); }),
+      'Reset Env': button(() => { setRef.current?.(pick(['envIntensity', 'envPreset'])); }),
     }),
     'Reset All': button(() => { setRef.current?.(DEFAULTS); }),
     'Copy Values': button((get) => {
