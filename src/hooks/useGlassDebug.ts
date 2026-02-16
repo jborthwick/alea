@@ -9,7 +9,7 @@ const DEFAULTS = {
   color: '#ffffff',
   envMapIntensity: 1.5,
   attenuationColor: '#53d5fd',
-  attenuationDistance: 0.4,
+  attenuationDistance: 2.0,
   specularIntensity: 1,
   specularColor: '#ffffff',
 };
@@ -37,7 +37,7 @@ export function useGlassDebug() {
       ior: { value: DEFAULTS.ior, min: 1.0, max: 2.5, step: 0.01, label: d('IOR', DEFAULTS.ior) },
       thickness: { value: DEFAULTS.thickness, min: 0, max: 5, step: 0.01, label: d('Thickness', DEFAULTS.thickness) },
       attenuationColor: { value: DEFAULTS.attenuationColor, label: 'Atten Color' },
-      attenuationDistance: { value: DEFAULTS.attenuationDistance, min: 0, max: 2, step: 0.01, label: d('Atten Dist', DEFAULTS.attenuationDistance) },
+      attenuationDistance: { value: DEFAULTS.attenuationDistance, min: 0, max: 5, step: 0.01, label: d('Atten Dist', DEFAULTS.attenuationDistance) },
       'Reset Transmission': button(() => { setRef.current?.(pick(['transmission', 'ior', 'thickness', 'attenuationColor', 'attenuationDistance'])); }),
     }),
     'Specular': folder({

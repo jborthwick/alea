@@ -82,7 +82,7 @@ export const DICE_MATERIAL_PRESETS: Record<DiceMaterialPreset, MaterialPropertie
     color: '#ffffff',
     envMapIntensity: 1.5,
     attenuationColor: '#53d5fd',
-    attenuationDistance: 0.4,
+    attenuationDistance: 2.0,
     specularIntensity: 1,
     specularColor: '#ffffff',
   },
@@ -152,6 +152,11 @@ const DICE_SETS: Record<DiceSetId, Record<string, string>> = {
     'J': blackmodernJ, '9': blackmodern9, '10': blackmodern10,
   },
   transparentwhite: {
+    'A': twA, 'K': twK, 'Q': twQ,
+    'J': twJ, '9': tw9, '10': tw10,
+  },
+  // Rainbow reuses transparentwhite face designs — per-die glass tint is applied in Die.tsx
+  rainbow: {
     'A': twA, 'K': twK, 'Q': twQ,
     'J': twJ, '9': tw9, '10': tw10,
   },

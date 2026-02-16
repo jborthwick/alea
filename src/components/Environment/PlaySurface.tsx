@@ -1,7 +1,7 @@
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useMemo } from 'react';
-import { TABLE_WIDTH, TABLE_DEPTH, CEILING_HEIGHT, PLAY_AREA_DEPTH, TABLE_CONFIGS } from '../../game/constants';
+import { TABLE_WIDTH, TABLE_DEPTH, CEILING_HEIGHT, PLAY_AREA_DEPTH, TABLE_CONFIGS, TABLE_EMISSIVE_INTENSITY } from '../../game/constants';
 import { useGameStore } from '../../store/gameStore';
 import { getTableTexture } from '../../game/preloader';
 
@@ -77,11 +77,17 @@ function createRimShape(
   return outer;
 }
 
-export function PlaySurface() {
+interface PlaySurfaceProps {
+  tableEmissive?: number;
+}
+
+export function PlaySurface({ tableEmissive = TABLE_EMISSIVE_INTENSITY }: PlaySurfaceProps) {
   const selectedTable = useGameStore((state) => state.selectedTable);
   const tableId = selectedTable ?? 'rooster';
   const rimColor = TABLE_CONFIGS[tableId].rimColor;
   const tableTexture = getTableTexture(tableId);
+
+  const effectiveEmissive = tableEmissive;
 
   const halfWidth = TABLE_WIDTH / 2;
   const halfDepth = TABLE_DEPTH / 2;
@@ -145,6 +151,9 @@ export function PlaySurface() {
             clearcoatRoughness={0.3}
             envMapIntensity={0.6}
             reflectivity={0.4}
+            emissive={effectiveEmissive > 0 ? '#ffffff' : '#000000'}
+            emissiveMap={effectiveEmissive > 0 ? tableTexture : null}
+            emissiveIntensity={effectiveEmissive}
           />
         </mesh>
       </RigidBody>

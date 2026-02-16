@@ -38,13 +38,14 @@ export const HAND_NAMES: Record<HandRank, string> = {
 export const INITIAL_BANKROLL = 1000;
 
 // Dice set definitions
-export type DiceSetId = 'alpha' | 'blackmodern' | 'transparentwhite';
+export type DiceSetId = 'alpha' | 'blackmodern' | 'transparentwhite' | 'rainbow';
 
 // Canvas background fill per dice set (drawn before the PNG overlay)
 export const DICE_SET_BG_COLORS: Record<DiceSetId, string> = {
   alpha: '#FAFAFA',
   blackmodern: '#1A1A1A',
   transparentwhite: '#1f4565',
+  rainbow: '#1f4565',  // same as transparentwhite (shares glass textures)
 };
 
 // Default material preset per dice set
@@ -52,10 +53,20 @@ export const DICE_SET_MATERIALS: Record<DiceSetId, string> = {
   alpha: 'casino',
   blackmodern: 'pearlescent',
   transparentwhite: 'glass',
+  rainbow: 'glass',
 };
 
+// Per-die glass tint colors for the rainbow dice set (one per die, indexed by die id 0-4)
+export const RAINBOW_DICE_COLORS: string[] = [
+  '#ff3344',  // red
+  '#ff8822',  // orange
+  '#22cc55',  // green
+  '#2288ff',  // blue
+  '#ee44aa',  // pink
+];
+
 // Table definitions
-export type TableId = 'rooster' | 'bluejay' | 'martin' | 'parrot' | 'owl';
+export type TableId = 'rooster' | 'bluejay' | 'martin' | 'parrot' | 'owl' | 'rainbow';
 
 export interface TableConfig {
   id: TableId;
@@ -131,9 +142,21 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     fillColor: '#FFE4C4',
     spotColor: '#FFFACD',
   },
+  rainbow: {
+    id: 'rainbow',
+    name: 'Rainbow',
+    bet: 500,
+    diceSet: 'rainbow',
+    accent: '240, 100, 60',
+    accentDark: '200, 70, 40',
+    rimColor: '#3a1e0e',
+    ambientColor: '#FFF0E0',
+    fillColor: '#FFE0CC',
+    spotColor: '#FFEEDD',
+  },
 };
 
-export const TABLE_ORDER: TableId[] = ['rooster', 'bluejay', 'martin', 'parrot', 'owl'];
+export const TABLE_ORDER: TableId[] = ['rooster', 'bluejay', 'martin', 'parrot', 'owl' /*, 'rainbow' */];
 
 export function applyTableTheme(tableId: TableId) {
   const config = TABLE_CONFIGS[tableId];
@@ -174,6 +197,8 @@ export const SPOT_HEIGHT = 12;
 export const SPOT_ANGLE = Math.PI / 6;
 export const SPOT_PENUMBRA = 1.0;
 export const SPOT_DECAY = 1.5;
+// Table surface emissive glow (backlights glass dice from below)
+export const TABLE_EMISSIVE_INTENSITY = 0.15;
 // Environment
 export const ENV_INTENSITY = 0.8;
 

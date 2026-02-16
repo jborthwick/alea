@@ -51,7 +51,7 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
       <Environment preset={lighting.envPreset as 'night'} environmentIntensity={lighting.envIntensity} />
       <Physics gravity={[0, gravity, 0]} timeStep="vary">
         <Lighting tiltX={tiltX} tiltY={tiltY} debug={lighting} />
-        <PlaySurface />
+        <PlaySurface tableEmissive={lighting.tableEmissive} />
         <GrabGestureLayer
           rollTrigger={rollTrigger}
           intensity={intensity}

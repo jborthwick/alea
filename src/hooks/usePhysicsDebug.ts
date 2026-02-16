@@ -73,7 +73,7 @@ export function usePhysicsDebug() {
       },
       diceSet: {
         value: DEFAULTS.diceSet,
-        options: { 'Table Default': '', 'Alpha': 'alpha', 'Black Modern': 'blackmodern', 'Transparent White': 'transparentwhite' },
+        options: { 'Table Default': '', 'Alpha': 'alpha', 'Black Modern': 'blackmodern', 'Transparent White': 'transparentwhite', 'Rainbow': 'rainbow' },
         label: 'Dice Set',
       },
       'Reset Appearance': button(() => { setRef.current?.(pick(['diceSize', 'diceMaterial', 'diceSet'])); }),

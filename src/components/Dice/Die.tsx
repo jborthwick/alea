@@ -7,7 +7,7 @@ import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse, calculateThrowImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry, releaseDiceMaterials, applyGlassOverrides } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
-import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS } from '../../game/constants';
+import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS, RAINBOW_DICE_COLORS } from '../../game/constants';
 import type { DiceSetId } from '../../game/constants';
 import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
@@ -130,20 +130,55 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
   const geometry = useMemo(() => createDiceGeometry(), []);
 
   // Get shared materials from cache (all dice with same preset+set reuse these)
-  const materials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet),
+  const isRainbow = diceSet === 'rainbow';
+  const baseMaterials = useMemo(() => createDiceMaterials(effectiveMaterial, diceSet),
     [effectiveMaterial, diceSet]);
 
-  // Release ref-counted materials on unmount or when preset/set changes
+  // Rainbow dice: clone shared glass materials so each die gets a unique attenuation color.
+  // Non-rainbow: use the shared materials directly.
+  const materials = useMemo(() => {
+    if (!isRainbow) return baseMaterials;
+    const tintColor = RAINBOW_DICE_COLORS[id] ?? '#ffffff';
+    return baseMaterials.map((mat) => {
+      const cloned = mat.clone() as THREE.MeshPhysicalMaterial;
+      cloned.attenuationColor = new THREE.Color(tintColor);
+      cloned.needsUpdate = true;
+      return cloned;
+    });
+  }, [baseMaterials, isRainbow, id]);
+
+  // Release ref-counted base materials on unmount or when preset/set changes.
+  // Rainbow clones are disposed separately below.
   useEffect(() => {
     return () => releaseDiceMaterials(effectiveMaterial, diceSet);
   }, [effectiveMaterial, diceSet]);
+
+  // Dispose rainbow cloned materials on unmount or when they change
+  useEffect(() => {
+    if (!isRainbow) return;
+    return () => {
+      for (const mat of materials) {
+        mat.dispose();
+      }
+    };
+  }, [materials, isRainbow]);
 
   // Apply glass debug overrides in-place (no texture recreation, just property updates)
   useEffect(() => {
     if (effectiveMaterial === 'glass' && glassDebug) {
       applyGlassOverrides(materials, glassDebug);
+      // Re-apply per-die tint after debug overrides (which reset attenuationColor)
+      if (isRainbow) {
+        const tintColor = RAINBOW_DICE_COLORS[id] ?? '#ffffff';
+        for (const mat of materials) {
+          if (mat instanceof THREE.MeshPhysicalMaterial) {
+            mat.attenuationColor.set(tintColor);
+            mat.needsUpdate = true;
+          }
+        }
+      }
     }
-  }, [glassDebug, effectiveMaterial, materials]);
+  }, [glassDebug, effectiveMaterial, materials, isRainbow, id]);
 
   // Pre-roll resting position near bottom of play area
   const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({

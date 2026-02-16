@@ -22,6 +22,7 @@ import {
   SPOT_PENUMBRA,
   SPOT_DECAY,
   ENV_INTENSITY,
+  TABLE_EMISSIVE_INTENSITY,
 } from '../game/constants';
 
 const DEFAULTS = {
@@ -47,6 +48,7 @@ const DEFAULTS = {
   spotDecay: SPOT_DECAY,
   envIntensity: ENV_INTENSITY,
   envPreset: 'night' as string,
+  tableEmissive: TABLE_EMISSIVE_INTENSITY,
 };
 
 export type LightingDebugValues = typeof DEFAULTS;
@@ -105,7 +107,8 @@ export function useLightingDebug() {
     'Environment': folder({
       envPreset: { value: DEFAULTS.envPreset, options: ['apartment', 'city', 'dawn', 'forest', 'lobby', 'night', 'park', 'studio', 'sunset', 'warehouse'], label: 'Preset' },
       envIntensity: { value: DEFAULTS.envIntensity, min: 0, max: 2, step: 0.05, label: d('Intensity', DEFAULTS.envIntensity) },
-      'Reset Env': button(() => { setRef.current?.(pick(['envIntensity', 'envPreset'])); }),
+      tableEmissive: { value: DEFAULTS.tableEmissive, min: 0, max: 1, step: 0.05, label: d('Table Glow', DEFAULTS.tableEmissive) },
+      'Reset Env': button(() => { setRef.current?.(pick(['envIntensity', 'envPreset', 'tableEmissive'])); }),
     }),
     'Reset All': button(() => { setRef.current?.(DEFAULTS); }),
     'Copy Values': button((get) => {
@@ -137,7 +140,9 @@ export const SPOT_ANGLE = ${v['Spotlight.spotAngle']};
 export const SPOT_PENUMBRA = ${v['Spotlight.spotPenumbra']};
 export const SPOT_DECAY = ${v['Spotlight.spotDecay']};
 // Environment
-export const ENV_INTENSITY = ${v['Environment.envIntensity']};`;
+export const ENV_INTENSITY = ${v['Environment.envIntensity']};
+// Table surface glow
+export const TABLE_EMISSIVE_INTENSITY = ${v['Environment.tableEmissive']};`;
 
       navigator.clipboard.writeText(code).then(() => {
         console.log('Lighting values copied to clipboard!\n\n' + code);

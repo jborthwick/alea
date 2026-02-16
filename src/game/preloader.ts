@@ -8,6 +8,7 @@ import tableBluejayImg from '../images/table_bluejay.jpg';
 import tableMartinImg from '../images/table_martin.jpg';
 import tableParrotImg from '../images/table_parrot.jpg';
 import tableOwlImg from '../images/table_owl.jpg';
+import tableRainbowImg from '../images/table_rainbow.jpg';
 
 const TABLE_IMAGES: Record<TableId, string> = {
   rooster: tableRoosterImg,
@@ -15,6 +16,7 @@ const TABLE_IMAGES: Record<TableId, string> = {
   martin: tableMartinImg,
   parrot: tableParrotImg,
   owl: tableOwlImg,
+  rainbow: tableRainbowImg,
 };
 
 // Cached textures, populated by preloadAllAssets()
