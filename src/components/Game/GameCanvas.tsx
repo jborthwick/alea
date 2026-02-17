@@ -71,7 +71,7 @@ export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tilt
 
   // Use wider FOV on mobile to prevent dice cutoff
   const isMobile = window.innerWidth <= 768;
-  const fov = isMobile ? 50 : 45;
+  const fov = isMobile ? 58 : 45;
 
   // Stable ref callback to avoid re-renders
   const onReadyRef = useRef(onReady);
@@ -85,7 +85,7 @@ export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tilt
         shadows={{ type: THREE.VSMShadowMap }}
         gl={{ alpha: true, powerPreference: 'high-performance' }}
         camera={{
-          position: [0, 12, 2],
+          position: [0, 12, 0],
           fov,
           near: 0.1,
           far: 100,

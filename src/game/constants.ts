@@ -211,7 +211,7 @@ export const ANGULAR_DAMPING = 0.1;
 export const LINEAR_DAMPING = 0.1;
 
 // Dice appearance
-export const DICE_SIZE = 0.70;
+export const DICE_SIZE = 0.75;
 export const DICE_EDGE_RADIUS = 0.075;
 
 // Play area (1:1 square format for easier asset creation)
@@ -244,7 +244,7 @@ export const HAND_RANK_VALUES: Record<HandRank, number> = {
 };
 
 // Opponent dice layout
-export const OPPONENT_DICE_SIZE = 0.55;  // Increased from 0.45 for better visibility
+export const OPPONENT_DICE_SIZE = 0.60;
 export const OPPONENT_DICE_Y = 0.3;
 export const OPPONENT_DICE_Z = -3.8;
-export const OPPONENT_DICE_SPACING = 0.8;  // Slightly increased spacing for larger dice
+export const OPPONENT_DICE_SPACING = 0.9;
