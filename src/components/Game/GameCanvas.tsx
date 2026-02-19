@@ -1,8 +1,8 @@
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { Environment } from '@react-three/drei';
 import { Leva } from 'leva';
-import { Suspense, useRef, useCallback, useMemo } from 'react';
+import { Suspense, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GrabGestureLayer } from '../Dice/GrabGestureLayer';
@@ -23,6 +23,9 @@ interface GameCanvasProps {
   tiltY?: number;
   onReady?: () => void;
   onThrow?: (intensity: number, direction: THREE.Vector2) => void;
+  onTap?: () => void;
+  onHoldStart?: () => void;
+  onHoldEnd?: () => void;
   canRoll?: boolean;
   isShaking?: boolean;
 }
@@ -39,8 +42,73 @@ function ReadyNotifier({ onReady }: { onReady?: () => void }) {
   return null;
 }
 
+// Calculates FOV and camera height based on current viewport aspect ratio.
+//
+// Strategy: drive FOV from the desired table coverage rather than from a fixed
+// horizontal FOV angle, so the table always fills the screen appropriately.
+//
+// Portrait  (aspect < 1): make TABLE_WIDTH fill ~90% of screen width.
+//   visible_half_width  = camY * tan(hFov/2)
+//   target              = (TABLE_WIDTH/2) / 0.90
+//   → tan(hFov/2)       = target / camY
+//   → vFov              = 2 * atan(tan(hFov/2) / aspect)   [Three.js uses vertical FOV]
+//
+// Landscape (aspect ≥ 1): make TABLE_DEPTH fill ~85% of screen height.
+//   visible_half_height = camY * tan(vFov/2)
+//   target              = (TABLE_DEPTH/2) / 0.85
+//   → vFov              = 2 * atan(target / camY)
+//
+// A smooth cross-fade between the two modes is applied around aspect ≈ 1.
+function calcCameraParams() {
+  const aspect = window.innerWidth / window.innerHeight;
+
+  // Camera height: keep the existing formula that works well across breakpoints.
+  // aspect=0.46 (mobile portrait) → camY≈9.85, aspect=1 → camY=12, aspect≥1 → camY=12
+  const camY = 8 + Math.min(1, aspect) * 4;
+
+  const TABLE_HALF = 5.2 / 2; // 2.6 world units
+
+  // Portrait FOV: size so TABLE_WIDTH fills 90% of screen width.
+  const portraitTanH  = TABLE_HALF / (camY * 0.90);          // tan(hFov/2)
+  const portraitVFov  = 2 * Math.atan(portraitTanH / aspect) * 180 / Math.PI;
+
+  // Landscape FOV: size so TABLE_DEPTH fills ~50% of screen height on desktop.
+  // (Table is square; on wide screens it should feel like a focused play area,
+  //  not wall-to-wall. ~50% height leaves comfortable room for UI.)
+  const landscapeTanV = TABLE_HALF / (camY * 0.50);          // tan(vFov/2)
+  const landscapeVFov = 2 * Math.atan(landscapeTanV)         * 180 / Math.PI;
+
+  // Blend weight: 0 = pure portrait, 1 = pure landscape.
+  // Transition band 0.8 → 1.2 to avoid a hard jump.
+  const t = Math.max(0, Math.min(1, (aspect - 0.8) / (1.2 - 0.8)));
+  const fov = portraitVFov * (1 - t) + landscapeVFov * t;
+
+  return { fov, camY };
+}
+
+// Reactive camera rig — updates FOV and height whenever the window is resized
+function CameraRig() {
+  const { camera } = useThree();
+  const apply = useCallback(() => {
+    const { fov, camY } = calcCameraParams();
+    const cam = camera as THREE.PerspectiveCamera;
+    cam.fov = fov;
+    cam.position.set(0, camY, 0);
+    cam.lookAt(0, 0, 0);
+    cam.updateProjectionMatrix();
+  }, [camera]);
+
+  useEffect(() => {
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, [apply]);
+
+  return null;
+}
+
 // Inner scene component that can use leva hooks inside Canvas
-function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll = false, isShaking = false }: GameCanvasProps) {
+function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, onTap, onHoldStart, onHoldEnd, canRoll = false, isShaking = false }: GameCanvasProps) {
   const { gravity } = usePhysicsDebug();
   const lighting = useLightingDebug();
   const { addObject, removeObject } = useOutlineEffect();
@@ -49,6 +117,7 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
 
   return (
     <OutlineProvider value={outlineCtx}>
+      <CameraRig />
       <Environment preset={lighting.envPreset as 'night'} environmentIntensity={lighting.envIntensity} />
       <Physics gravity={[0, gravity, 0]} timeStep="vary">
         <Lighting tiltX={tiltX} tiltY={tiltY} debug={lighting} />
@@ -59,6 +128,9 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
           throwDirection={throwDirection}
           canRoll={canRoll}
           onThrow={onThrow ?? (() => {})}
+          onTap={onTap}
+          onHoldStart={onHoldStart}
+          onHoldEnd={onHoldEnd}
           isShaking={isShaking}
         />
         <OpponentDiceGroup />
@@ -68,12 +140,10 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
   );
 }
 
-export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll, isShaking }: GameCanvasProps) {
+export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, onTap, onHoldStart, onHoldEnd, canRoll, isShaking }: GameCanvasProps) {
   const showDebugPanel = useGameStore((state) => state.showDebugPanel);
 
-  // Use wider FOV on mobile to prevent dice cutoff
-  const isMobile = window.innerWidth <= 768;
-  const fov = isMobile ? 58 : 45;
+  // Camera FOV and height are managed reactively by CameraRig inside the scene.
 
   // Stable ref callback to avoid re-renders
   const onReadyRef = useRef(onReady);
@@ -88,14 +158,14 @@ export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tilt
         gl={{ alpha: true, powerPreference: 'high-performance' }}
         camera={{
           position: [0, 12, 0],
-          fov,
+          fov: 48,
           near: 0.1,
           far: 100,
         }}
         style={{ background: 'rgb(var(--bg))' }}
       >
         <Suspense fallback={null}>
-          <Scene rollTrigger={rollTrigger} intensity={intensity} throwDirection={throwDirection} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} onThrow={onThrow} canRoll={canRoll} isShaking={isShaking} />
+          <Scene rollTrigger={rollTrigger} intensity={intensity} throwDirection={throwDirection} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} onThrow={onThrow} onTap={onTap} onHoldStart={onHoldStart} onHoldEnd={onHoldEnd} canRoll={canRoll} isShaking={isShaking} />
         </Suspense>
       </Canvas>
     </>

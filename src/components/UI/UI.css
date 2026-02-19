@@ -121,14 +121,13 @@
   color: rgb(var(--text));
 }
 
-/* Player hand display (bottom of screen) */
+/* Player hand display (overlaid on lower table area) */
 .player-hand-display {
   text-align: center;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  margin-bottom: 0.5rem;
 }
 
 .player-hand-display .hand-name {
@@ -141,6 +140,18 @@
 .outcome-text {
   font-size: 1.4rem;
   font-weight: bold;
+}
+
+.action-button.result-new-round-button {
+  margin-top: 1rem;
+  background: #ffffff;
+  color: #111111;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.action-button.result-new-round-button:hover {
+  background: #f0f0f0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .outcome-text.win { color: rgb(var(--accent)); }

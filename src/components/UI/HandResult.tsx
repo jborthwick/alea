@@ -32,13 +32,18 @@ export function PlayerHandDisplay() {
   );
 }
 
+interface HandResultProps {
+  onNewRound: () => void;
+}
+
 // Final result modal (shown in center during scoring)
-export function HandResult() {
+export function HandResult({ onNewRound }: HandResultProps) {
   const currentHand = useGameStore((state) => state.currentHand);
   const lastWin = useGameStore((state) => state.lastWin);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const roundOutcome = useGameStore((state) => state.roundOutcome);
   const currentBet = useGameStore((state) => state.currentBet);
+  const bankroll = useGameStore((state) => state.bankroll);
   const { playWin, playLose } = useAudio();
   const { vibrateWin, vibrateLose } = useHaptics();
   const hasPlayedSound = useRef(false);
@@ -65,6 +70,7 @@ export function HandResult() {
   if (gamePhase !== 'scoring' || !roundOutcome || !currentHand) return null;
 
   const outcomeClass = roundOutcome === 'win' ? 'win' : roundOutcome === 'lose' ? 'lose' : 'tie';
+  const isGameOver = currentBet > 0 && bankroll <= 0;
 
   return (
     <div className={`hand-result final expanded ${outcomeClass}`}>
@@ -80,6 +86,9 @@ export function HandResult() {
       {roundOutcome === 'lose' && (
         <div className="win-amount negative">-${currentBet}</div>
       )}
+      <button className="action-button result-new-round-button" onClick={onNewRound}>
+        {isGameOver ? 'GAME OVER' : 'NEW ROUND'}
+      </button>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse, calculateThrowImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry, releaseDiceMaterials, applyGlassOverrides } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
-import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS, RAINBOW_DICE_COLORS } from '../../game/constants';
+import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS, RAINBOW_DICE_COLORS, PLAYER_DICE_Y, PLAYER_DICE_Z, PLAYER_DICE_SPACING } from '../../game/constants';
 import type { DiceSetId } from '../../game/constants';
 import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
@@ -186,18 +186,18 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
     }
   }, [glassDebug, effectiveMaterial, materials, isRainbow, id]);
 
-  // Pre-roll resting position near bottom of play area
+  // Pre-roll resting position: below the front table edge, mirroring opponent dice
   const preRollPosition = useMemo((): { x: number; y: number; z: number } => ({
-    x: (id - 2) * 0.9,
-    y: DICE_SIZE / 2,
-    z: 1.5,
+    x: (id - 2) * PLAYER_DICE_SPACING,
+    y: PLAYER_DICE_Y,
+    z: PLAYER_DICE_Z,
   }), [id]);
 
-  // For held dice, use a static position (positive Z = toward camera/bottom of screen)
+  // Held/parked position: same tray as pre-roll (outside front table edge)
   const heldPosition = useMemo((): { x: number; y: number; z: number } => ({
-    x: (id - 2) * 0.9,
-    y: 0.5,
-    z: 1.8,
+    x: (id - 2) * PLAYER_DICE_SPACING,
+    y: PLAYER_DICE_Y,
+    z: PLAYER_DICE_Z,
   }), [id]);
 
   // Handle roll trigger
@@ -467,7 +467,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
     );
 
     // Out-of-bounds recovery: teleport die back if it escapes the play area
-    const oobMargin = 1;
+    // Margin must be large enough to clear the player dice park zone (PLAYER_DICE_Z = 4.2)
+    const oobMargin = 2.5;
     const halfW = TABLE_WIDTH / 2 + oobMargin;
     const halfD = TABLE_DEPTH / 2 + oobMargin;
     if (pos.y < -2 || Math.abs(pos.x) > halfW || Math.abs(pos.z) > halfD) {

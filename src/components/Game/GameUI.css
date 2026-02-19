@@ -4,13 +4,11 @@
   top: 0;
   left: 0;
   right: 0;
-  /* Use dvh for dynamic viewport height that accounts for mobile browser chrome */
   height: 100dvh;
   pointer-events: none;
   display: flex;
   flex-direction: column;
   padding: 1rem;
-  /* Add safe area insets for iOS devices with notch/home indicator */
   padding-top: max(1rem, env(safe-area-inset-top));
   padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   padding-left: max(1rem, env(safe-area-inset-left));
@@ -67,71 +65,57 @@
   pointer-events: auto;
 }
 
-/* Hold hint */
-.hold-hint {
+/* Contextual action overlay — floats above the player dice tray.
+   Only shown for SCORE / NEW ROUND / GAME OVER / SCORE HAND. */
+.action-overlay {
   position: absolute;
-  bottom: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  color: rgb(var(--accent));
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  pointer-events: none;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
-}
-
-/* Bottom bar */
-.ui-bottom {
+  bottom: 10dvh;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  pointer-events: auto;
+  animation: fadeInUp 0.2s ease-out;
 }
 
-.roll-button {
-  padding: 1rem 3rem;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.action-button {
+  padding: 0.9rem 2.5rem;
   border: none;
   border-radius: 8px;
   background: linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-dark)) 100%);
   color: rgb(var(--text-on-accent));
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   box-shadow: 0 4px 15px rgba(var(--accent), 0.4);
 }
 
-.roll-button:hover:not(.disabled) {
+.action-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(var(--accent), 0.5);
 }
 
-.roll-button:active:not(.disabled) {
+.action-button:active {
   transform: translateY(0);
 }
 
-.roll-button.shaking {
-  animation: roll-button-shake 0.12s infinite alternate ease-in-out;
-}
-
-@keyframes roll-button-shake {
-  from { transform: scale(1.03) translateY(-1px); }
-  to   { transform: scale(0.97) translateY(1px); }
-}
-
-.roll-button.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.action-button--secondary {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(var(--accent), 0.6);
+  color: rgb(var(--accent));
+  box-shadow: none;
+  font-size: 0.95rem;
+  padding: 0.7rem 2rem;
 }
 
 .shake-permission-button {
@@ -155,6 +139,26 @@
   text-align: center;
 }
 
+/* Player hand label — floats over the lower portion of the table, above the dice tray */
+.player-hand-overlay {
+  position: absolute;
+  bottom: 18dvh;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Bottom bar — roll counter dots */
+.ui-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
 /* Mobile styles */
 @media (max-width: 768px) {
   .game-ui {
@@ -173,20 +177,16 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
-    padding-top: 34%;
+    padding-top: 28%;
   }
 
   .ui-bottom {
     flex-shrink: 0;
   }
 
-  .roll-button {
-    padding: 0.875rem 2rem;
+  .action-button {
     font-size: 1rem;
-  }
-
-  .hold-hint {
-    font-size: 0.75rem;
+    padding: 0.875rem 2rem;
   }
 }
 

@@ -47,9 +47,10 @@ export function calculateRollImpulse(
     -(Math.random() * 0.5 + 0.3) * baseImpulse  // Negative Z = backward/upward on screen
   ).multiplyScalar(variance);
 
-  // Start position: spread across the table, above the surface, closer to front
-  const spreadX = (dieIndex - 2) * 0.8 + (Math.random() - 0.5) * 0.4;
-  const spreadZ = 1.0 + Math.random() * 0.5; // Start near front (positive Z = toward camera)
+  // Start position: spread across the table, above the surface, closer to front.
+  // Clamped to stay within play area bounds so dice always land on the table.
+  const spreadX = Math.max(-2.0, Math.min(2.0, (dieIndex - 2) * 0.8 + (Math.random() - 0.5) * 0.4));
+  const spreadZ = Math.min(2.0, 1.0 + Math.random() * 0.5); // near front but within bounds
   const startPosition = new Vector3(spreadX, 2.5 + Math.random() * 0.5, spreadZ);
 
   return {
@@ -94,17 +95,34 @@ export function calculateThrowImpulse(
   const baseImpulse = BASE_IMPULSE * clampedIntensity;
   const variance = 1 + (Math.random() - 0.5) * IMPULSE_VARIANCE;
 
+  // Map screen flick direction to world impulse, then blend in a pull toward
+  // the table center so dice always land on the play surface even if the
+  // player throws toward the edge or drops the die off the table.
+  const rawZ = direction.y * baseImpulse * 1.1; // screen Y → world Z
+  const rawX = direction.x * baseImpulse * 1.0;
+
+  // "Safe" Z: ensure at least 30% of baseImpulse goes toward the center (negative Z).
+  // If the throw is already going inward (negative rawZ) keep it; if going outward
+  // (positive rawZ, toward camera) pull it back strongly.
+  const safeZ = rawZ > 0
+    ? -baseImpulse * 0.4                         // throwing toward camera → redirect inward
+    : Math.min(rawZ, -baseImpulse * 0.3);        // going inward but weakly → ensure minimum pull
+
   const linearImpulse = new Vector3(
-    direction.x * baseImpulse * 1.0,   // Screen X → World X (full directional energy)
-    baseImpulse * 0.45,                 // Upward arc (slightly higher for satisfying bounce)
-    direction.y * baseImpulse * 1.1     // Screen Y → World Z (neg = back of table)
+    rawX,
+    baseImpulse * 0.45,   // upward arc
+    safeZ,
   ).multiplyScalar(variance);
 
-  // Start position: use current grab position if provided, else default spread
+  // Start position: clamp to the play surface so a die grabbed outside the table
+  // boundary is still launched from a safe inbounds position.
   const spreadX = (dieIndex - 2) * 0.8 + (Math.random() - 0.5) * 0.3;
-  const startPosition = startPos
-    ? startPos.clone()
-    : new Vector3(spreadX, 2.0, 1.2);
+  const rawStart = startPos ? startPos.clone() : new Vector3(spreadX, 2.0, 1.2);
+  // Clamp XZ to stay within table bounds (TABLE_WIDTH/2 and TABLE_DEPTH/2 - margin)
+  rawStart.x = Math.max(-2.0, Math.min(2.0, rawStart.x));
+  rawStart.z = Math.max(-2.0, Math.min(2.0, rawStart.z));
+  rawStart.y = Math.max(rawStart.y, 1.5); // always launch from above the surface
+  const startPosition = rawStart;
 
   return { linearImpulse, angularImpulse, startPosition };
 }

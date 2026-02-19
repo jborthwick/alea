@@ -17,9 +17,11 @@ export function Game() {
   const [sceneReady, setSceneReady] = useState(false);
 
   const rollDice = useGameStore((state) => state.rollDice);
+  const newRound = useGameStore((state) => state.newRound);
   const isRolling = useGameStore((state) => state.isRolling);
   const opponentIsRolling = useGameStore((state) => state.opponentIsRolling);
   const isShaking = useGameStore((state) => state.isShaking);
+  const setIsShaking = useGameStore((state) => state.setIsShaking);
   const rollsRemaining = useGameStore((state) => state.rollsRemaining);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const bankroll = useGameStore((state) => state.bankroll);
@@ -57,6 +59,30 @@ export function Game() {
     },
     [initAudio, playRoll, vibrateRoll, handleRoll]
   );
+
+  // Tap on canvas (short press) → normal roll
+  const handleTap = useCallback(() => {
+    if (!canRoll) return;
+    initAudio();
+    playRoll();
+    vibrateRoll();
+    handleRoll(0.7);
+  }, [canRoll, initAudio, playRoll, vibrateRoll, handleRoll]);
+
+  // Hold on canvas with all dice held → cup shake
+  const handleHoldStart = useCallback(() => {
+    if (!canRoll) return;
+    setIsShaking(true);
+  }, [canRoll, setIsShaking]);
+
+  const handleHoldEnd = useCallback(() => {
+    setIsShaking(false);
+    if (!canRoll) return;
+    initAudio();
+    playRoll();
+    vibrateRoll();
+    handleRoll(0.85);
+  }, [canRoll, setIsShaking, initAudio, playRoll, vibrateRoll, handleRoll]);
 
   // Handle shake detection
   useShakeDetection({
@@ -96,10 +122,13 @@ export function Game() {
         tiltY={tiltY}
         onReady={() => setSceneReady(true)}
         onThrow={handleThrow}
+        onTap={handleTap}
+        onHoldStart={handleHoldStart}
+        onHoldEnd={handleHoldEnd}
         canRoll={canRoll}
         isShaking={isShaking}
       />
-      <GameUI onRoll={handleRoll} />
+      <GameUI onRoll={handleRoll} onNewRound={newRound} />
     </div>
   );
 }

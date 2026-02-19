@@ -76,7 +76,6 @@ export interface TableConfig {
   diceSet: DiceSetId;   // Which dice art set to use
   accent: string;       // RGB triplet for --accent
   accentDark: string;   // RGB triplet for --accent-dark
-  rimColor: string;     // Hex color for table rim
   ambientColor: string; // Hex color for ambient light
   fillColor: string;    // Hex color for fill light
   spotColor: string;    // Hex color for spotlight
@@ -91,7 +90,6 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     diceSet: 'alpha',
     accent: '220, 50, 50',
     accentDark: '170, 30, 30',
-    rimColor: '#4a0e0e',
     ambientColor: '#FFE0D6',
     fillColor: '#FFD0C0',
     spotColor: '#FFDDCC',
@@ -103,7 +101,6 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     diceSet: 'transparentwhite',
     accent: '70, 140, 220',
     accentDark: '40, 100, 180',
-    rimColor: '#0e2a4a',
     ambientColor: '#D6E8FF',
     fillColor: '#C4DEFF',
     spotColor: '#CCE4FF',
@@ -115,7 +112,6 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     diceSet: 'alpha',
     accent: '160, 90, 220',
     accentDark: '120, 60, 180',
-    rimColor: '#2e0e4a',
     ambientColor: '#EAD6FF',
     fillColor: '#DEC4FF',
     spotColor: '#E4CCFF',
@@ -127,7 +123,6 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     diceSet: 'alpha',
     accent: '70, 190, 100',
     accentDark: '40, 150, 70',
-    rimColor: '#0e4a1a',
     ambientColor: '#D6FFE0',
     fillColor: '#C4FFCC',
     spotColor: '#CCFFDD',
@@ -139,7 +134,6 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     diceSet: 'blackmodern',
     accent: '170, 170, 180',
     accentDark: '130, 130, 140',
-    rimColor: '#2a2a2a',
     ambientColor: '#FFF5E6',
     fillColor: '#FFE4C4',
     spotColor: '#FFFACD',
@@ -151,7 +145,6 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     diceSet: 'rainbow',
     accent: '240, 100, 60',
     accentDark: '200, 70, 40',
-    rimColor: '#3a1e0e',
     ambientColor: '#FFF0E0',
     fillColor: '#FFE0CC',
     spotColor: '#FFEEDD',
@@ -217,8 +210,8 @@ export const DICE_SIZE = 0.65;
 export const DICE_EDGE_RADIUS = 0.065;
 
 // Play area (1:1 square format for easier asset creation)
-export const TABLE_WIDTH = 5.5;   // X dimension
-export const TABLE_DEPTH = 5.5;   // Z dimension (same as width for 1:1 ratio)
+export const TABLE_WIDTH = 5.2;   // X dimension
+export const TABLE_DEPTH = 5.2;   // Z dimension (same as width for 1:1 ratio)
 export const WALL_HEIGHT = 0.6;  // Visible rail height
 export const CEILING_HEIGHT = 4; // Invisible ceiling to contain dice
 
@@ -247,6 +240,11 @@ export const HAND_RANK_VALUES: Record<HandRank, number> = {
 
 // Opponent dice layout
 export const OPPONENT_DICE_SIZE = 0.60;
-export const OPPONENT_DICE_Y = 0.3;
-export const OPPONENT_DICE_Z = -3.8;
+export const OPPONENT_DICE_Y = 0.3;   // same surface level as player dice
+export const OPPONENT_DICE_Z = -3.6;  // clear of the back table edge (edge at -2.5)
 export const OPPONENT_DICE_SPACING = 0.9;
+
+// Player dice park layout (mirror of opponent at the near/front edge)
+export const PLAYER_DICE_Y = 0.3;    // same surface level as opponent dice
+export const PLAYER_DICE_Z = 3.4;    // just beyond the front table edge (edge at +2.5)
+export const PLAYER_DICE_SPACING = 0.9;
