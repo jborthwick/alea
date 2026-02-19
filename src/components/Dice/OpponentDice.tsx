@@ -10,7 +10,6 @@ import {
   OPPONENT_DICE_Y,
   OPPONENT_DICE_Z,
   OPPONENT_DICE_SPACING,
-  TABLE_CONFIGS,
   DICE_SET_MATERIALS,
 } from '../../game/constants';
 import type { DiceSetId } from '../../game/constants';
@@ -35,16 +34,12 @@ function OpponentDie({ id }: { id: number }) {
   const targetQuatRef = useRef<THREE.Quaternion>(new THREE.Quaternion());
   const die = useGameStore(state => state.opponentDice[id]);
   const opponentIsRolling = useGameStore(state => state.opponentIsRolling);
-  const selectedTable = useGameStore(state => state.selectedTable);
   const { diceMaterial, diceSet: debugDiceSet } = usePhysicsDebug();
   const glassDebug = useGlassDebug();
   const scale = OPPONENT_DICE_SIZE / DICE_SIZE;
   const xPos = (id - 2) * OPPONENT_DICE_SPACING;
 
-  // Table config for glow color and dice set
-  const tableId = selectedTable ?? 'owl';
-  const tableConfig = TABLE_CONFIGS[tableId];
-  const diceSet = (debugDiceSet || tableConfig.diceSet) as DiceSetId;
+  const diceSet = (debugDiceSet || 'blackmodern') as DiceSetId;
   const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
 
   const geometry = useMemo(() => createDiceGeometry(), []);
