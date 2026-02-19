@@ -12,9 +12,10 @@ interface DiceGroupProps {
   throwDirection?: THREE.Vector2 | null;
   isGrabbing?: boolean;
   grabTargetRef?: React.RefObject<THREE.Vector3 | null>;
+  isShaking?: boolean;
 }
 
-export function DiceGroup({ rollTrigger, intensity = 0.7, throwDirection, isGrabbing, grabTargetRef }: DiceGroupProps) {
+export function DiceGroup({ rollTrigger, intensity = 0.7, throwDirection, isGrabbing, grabTargetRef, isShaking }: DiceGroupProps) {
   const dice = useGameStore((state) => state.dice);
   const updateDieValue = useGameStore((state) => state.updateDieValue);
   const finishRoll = useGameStore((state) => state.finishRoll);
@@ -103,6 +104,7 @@ export function DiceGroup({ rollTrigger, intensity = 0.7, throwDirection, isGrab
           onHold={handleHold}
           isGrabbing={isGrabbing}
           grabTargetRef={grabTargetRef}
+          isShaking={isShaking}
         />
       ))}
     </group>

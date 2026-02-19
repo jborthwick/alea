@@ -68,6 +68,9 @@ export interface GameState {
   shakeEnabled: boolean;
   showDebugPanel: boolean;
 
+  // Shake-to-roll cup shake state
+  isShaking: boolean;
+
   // Actions
   selectTable: (tableId: TableId) => void;
   returnToLobby: () => void;
@@ -81,4 +84,5 @@ export interface GameState {
   updateDieValue: (id: number, value: CardValue) => void;
   setRolling: (rolling: boolean) => void;
   finishRoll: () => void;
+  setIsShaking: (v: boolean) => void;
 }

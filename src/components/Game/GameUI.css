@@ -120,6 +120,15 @@
   transform: translateY(0);
 }
 
+.roll-button.shaking {
+  animation: roll-button-shake 0.12s infinite alternate ease-in-out;
+}
+
+@keyframes roll-button-shake {
+  from { transform: scale(1.03) translateY(-1px); }
+  to   { transform: scale(0.97) translateY(1px); }
+}
+
 .roll-button.disabled {
   opacity: 0.5;
   cursor: not-allowed;

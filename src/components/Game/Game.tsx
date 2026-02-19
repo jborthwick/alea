@@ -19,6 +19,7 @@ export function Game() {
   const rollDice = useGameStore((state) => state.rollDice);
   const isRolling = useGameStore((state) => state.isRolling);
   const opponentIsRolling = useGameStore((state) => state.opponentIsRolling);
+  const isShaking = useGameStore((state) => state.isShaking);
   const rollsRemaining = useGameStore((state) => state.rollsRemaining);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const bankroll = useGameStore((state) => state.bankroll);
@@ -96,6 +97,7 @@ export function Game() {
         onReady={() => setSceneReady(true)}
         onThrow={handleThrow}
         canRoll={canRoll}
+        isShaking={isShaking}
       />
       <GameUI onRoll={handleRoll} />
     </div>

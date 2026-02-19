@@ -23,6 +23,7 @@ interface DieProps {
   onHold: (id: number) => void;
   isGrabbing?: boolean;
   grabTargetRef?: React.RefObject<THREE.Vector3 | null>;
+  isShaking?: boolean;
 }
 
 // Ace face up: -Y axis points up, so rotate PI on X
@@ -44,7 +45,7 @@ const _faceAxes = [
   new THREE.Vector3(0, 0, -1),
 ];
 
-export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection, canHold, onHold, isGrabbing = false, grabTargetRef }: DieProps) {
+export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection, canHold, onHold, isGrabbing = false, grabTargetRef, isShaking = false }: DieProps) {
   const { mass, restitution, friction, angularDamping, linearDamping, diceSize, diceMaterial, diceSet: debugDiceSet } = usePhysicsDebug();
   const glassDebug = useGlassDebug();
   const rigidBodyRef = useRef<RapierRigidBody>(null);
@@ -59,6 +60,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
 
   // Track whether dice are actively rolling (cleared by roll trigger, set false by settle)
   const isPhysicsActive = useRef(false);
+
+  // Cup-shake impulse state
+  const shakeGathered = useRef(false);   // have we done the initial gather teleport?
+  const shakeKickTime = useRef(0);       // timestamp of next random kick (ms)
+  const shakeStartTime = useRef(0);      // when the current shake began (ms)
 
   // Animation state for hold/unhold transitions
   const isTransitioning = useRef(false);
@@ -203,11 +209,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
 
       const rb = rigidBodyRef.current;
       if (rb) {
-        // Wake up the body first
         rb.wakeUp();
 
-        // Calculate impulse — use directional throw if flick direction provided
+        const wasShaking = shakeGathered.current;
         const currentPos = rb.translation();
+
         const impulse = throwDirection
           ? calculateThrowImpulse(
               intensity,
@@ -217,25 +223,42 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
             )
           : calculateRollImpulse(intensity, id);
 
-        // Reset position
-        rb.setTranslation(
-          { x: impulse.startPosition.x, y: impulse.startPosition.y, z: impulse.startPosition.z },
-          true
-        );
-        rb.setRotation(
-          { x: Math.random() * Math.PI, y: Math.random() * Math.PI, z: Math.random() * Math.PI, w: 1 },
-          true
-        );
-
-        // Apply impulses
-        rb.setLinvel(
-          { x: impulse.linearImpulse.x, y: impulse.linearImpulse.y, z: impulse.linearImpulse.z },
-          true
-        );
-        rb.setAngvel(
-          { x: impulse.angularImpulse.x, y: impulse.angularImpulse.y, z: impulse.angularImpulse.z },
-          true
-        );
+        if (wasShaking) {
+          // Coming from a shake — launch from current position, no teleport.
+          // Blend existing shake velocity with roll impulse for a smooth handoff.
+          const sv = rb.linvel();
+          const av = rb.angvel();
+          rb.setLinvel({
+            x: sv.x * 0.3 + impulse.linearImpulse.x,
+            y: sv.y * 0.2 + impulse.linearImpulse.y,
+            z: sv.z * 0.3 + impulse.linearImpulse.z,
+          }, true);
+          rb.setAngvel({
+            x: av.x * 0.4 + impulse.angularImpulse.x,
+            y: av.y * 0.4 + impulse.angularImpulse.y,
+            z: av.z * 0.4 + impulse.angularImpulse.z,
+          }, true);
+          // Clear shake state so shake physics stop fighting the roll
+          shakeGathered.current = false;
+        } else {
+          // Normal roll — teleport to start position and apply full impulse
+          rb.setTranslation(
+            { x: impulse.startPosition.x, y: impulse.startPosition.y, z: impulse.startPosition.z },
+            true
+          );
+          rb.setRotation(
+            { x: Math.random() * Math.PI, y: Math.random() * Math.PI, z: Math.random() * Math.PI, w: 1 },
+            true
+          );
+          rb.setLinvel(
+            { x: impulse.linearImpulse.x, y: impulse.linearImpulse.y, z: impulse.linearImpulse.z },
+            true
+          );
+          rb.setAngvel(
+            { x: impulse.angularImpulse.x, y: impulse.angularImpulse.y, z: impulse.angularImpulse.z },
+            true
+          );
+        }
 
         rb.wakeUp();
       }
@@ -297,6 +320,91 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
       // Cancel any in-progress transition
       isTransitioning.current = false;
       return;
+    }
+
+    // Cup-shake: fully physics-driven so dice actually collide with each other
+    if (isShaking && !isHeld) {
+      const now = performance.now();
+
+      // Sphere center hovers above the table
+      const sphereCX = 0;
+      const sphereCY = 1.5;  // center height — dice hover here
+      const sphereCZ = -0.2;
+      const sphereR  = 0.5;  // radius of the invisible cup sphere
+
+      // One-time gather: teleport into sphere, give each die a random velocity
+      if (!shakeGathered.current) {
+        // Start near center of sphere with slight spread
+        const gatherX = (id - 2) * 0.35;
+        rb.setTranslation({ x: sphereCX + gatherX, y: sphereCY, z: sphereCZ }, true);
+        // Random velocity pointing outward so dice immediately spread and collide
+        rb.setLinvel({
+          x: (Math.random() - 0.5) * 5,
+          y: (Math.random() - 0.5) * 3,
+          z: (Math.random() - 0.5) * 5,
+        }, true);
+        rb.setAngvel({
+          x: (Math.random() - 0.5) * 14,
+          y: (Math.random() - 0.5) * 14,
+          z: (Math.random() - 0.5) * 14,
+        }, true);
+        rb.wakeUp();
+        shakeGathered.current = true;
+        shakeStartTime.current = now;
+        shakeKickTime.current = now + 200;
+      }
+
+      const pos = rb.translation();
+      const shakeAge = Math.min((now - shakeStartTime.current) / 1000, 2.0);
+
+      // 3D spherical boundary — push dice back toward center from any direction.
+      // This is the "cup wall": the further outside the sphere, the stronger the push.
+      const dx = pos.x - sphereCX;
+      const dy = pos.y - sphereCY;
+      const dz = pos.z - sphereCZ;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist > sphereR * 0.5) {
+        // Scaled spring: gentle inside the sphere, firm at the boundary
+        const excess = Math.max(0, dist - sphereR * 0.5);
+        const springStrength = excess * 12.0 * delta;
+        rb.applyImpulse({
+          x: -(dx / dist) * springStrength,
+          y: -(dy / dist) * springStrength,
+          z: -(dz / dist) * springStrength,
+        }, true);
+      }
+
+      // Gravity compensation — keep dice hovering inside the sphere rather than sinking
+      // Apply just enough upward force to cancel gravity (mass * |gravity| = 0.3 * 35 = 10.5)
+      rb.applyImpulse({ x: 0, y: 10.5 * delta, z: 0 }, true);
+
+      // Periodic random kick every 200–350ms to keep dice moving and colliding
+      if (now >= shakeKickTime.current) {
+        // Kick in a random 3D direction, biased toward center so dice cross paths
+        const kickAngleXZ = Math.random() * Math.PI * 2;
+        const kickStrength = 0.9 + Math.random() * 0.7 + shakeAge * 0.1;
+        rb.applyImpulse({
+          x: Math.cos(kickAngleXZ) * kickStrength,
+          y: (Math.random() - 0.5) * kickStrength * 0.6,
+          z: Math.sin(kickAngleXZ) * kickStrength,
+        }, true);
+        rb.applyTorqueImpulse({
+          x: (Math.random() - 0.5) * 0.7,
+          y: (Math.random() - 0.5) * 0.5,
+          z: (Math.random() - 0.5) * 0.7,
+        }, true);
+        shakeKickTime.current = now + 120 + Math.random() * 100;
+      }
+
+      isPhysicsActive.current = true;
+      isTransitioning.current = false;
+      return;
+    }
+
+    // Reset shake state when shake ends so next shake re-gathers cleanly
+    if (!isShaking) {
+      shakeGathered.current = false;
+      shakeStartTime.current = 0;
     }
 
     // Handle hold/unhold transitions

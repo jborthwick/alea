@@ -14,6 +14,7 @@ interface GrabGestureLayerProps {
   throwDirection?: THREE.Vector2 | null;
   canRoll: boolean;
   onThrow: (intensity: number, direction: THREE.Vector2) => void;
+  isShaking?: boolean;
 }
 
 export function GrabGestureLayer({
@@ -22,6 +23,7 @@ export function GrabGestureLayer({
   throwDirection,
   canRoll,
   onThrow,
+  isShaking,
 }: GrabGestureLayerProps) {
   const dice = useGameStore((s) => s.dice);
   const hasNonHeldDice = useMemo(() => dice.some((d) => !d.isHeld), [dice]);
@@ -77,6 +79,7 @@ export function GrabGestureLayer({
         throwDirection={throwDirection}
         isGrabbing={isGrabbing}
         grabTargetRef={grabTargetRef}
+        isShaking={isShaking}
       />
     </group>
   );

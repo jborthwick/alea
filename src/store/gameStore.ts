@@ -47,6 +47,7 @@ export const useGameStore = create<GameState>()(
       soundEnabled: true,
       shakeEnabled: false, // Starts off; user must enable each session (iOS doesn't persist permission)
       showDebugPanel: import.meta.env.DEV,
+      isShaking: false,
 
       // Opponent state
       opponentDice: createInitialOpponentDice(),
@@ -283,6 +284,8 @@ export const useGameStore = create<GameState>()(
           roundOutcome: null,
         });
       },
+
+      setIsShaking: (v: boolean) => set({ isShaking: v }),
     }),
     {
       name: 'dice-poker-storage',

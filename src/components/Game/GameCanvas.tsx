@@ -24,6 +24,7 @@ interface GameCanvasProps {
   onReady?: () => void;
   onThrow?: (intensity: number, direction: THREE.Vector2) => void;
   canRoll?: boolean;
+  isShaking?: boolean;
 }
 
 // Fires onReady after the first frame renders (scene fully composed)
@@ -39,7 +40,7 @@ function ReadyNotifier({ onReady }: { onReady?: () => void }) {
 }
 
 // Inner scene component that can use leva hooks inside Canvas
-function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll = false }: GameCanvasProps) {
+function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll = false, isShaking = false }: GameCanvasProps) {
   const { gravity } = usePhysicsDebug();
   const lighting = useLightingDebug();
   const { addObject, removeObject } = useOutlineEffect();
@@ -58,6 +59,7 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
           throwDirection={throwDirection}
           canRoll={canRoll}
           onThrow={onThrow ?? (() => {})}
+          isShaking={isShaking}
         />
         <OpponentDiceGroup />
         <ReadyNotifier onReady={onReady} />
@@ -66,7 +68,7 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
   );
 }
 
-export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll }: GameCanvasProps) {
+export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, canRoll, isShaking }: GameCanvasProps) {
   const showDebugPanel = useGameStore((state) => state.showDebugPanel);
 
   // Use wider FOV on mobile to prevent dice cutoff
@@ -93,7 +95,7 @@ export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tilt
         style={{ background: 'rgb(var(--bg))' }}
       >
         <Suspense fallback={null}>
-          <Scene rollTrigger={rollTrigger} intensity={intensity} throwDirection={throwDirection} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} onThrow={onThrow} canRoll={canRoll} />
+          <Scene rollTrigger={rollTrigger} intensity={intensity} throwDirection={throwDirection} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} onThrow={onThrow} canRoll={canRoll} isShaking={isShaking} />
         </Suspense>
       </Canvas>
     </>
