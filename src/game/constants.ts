@@ -211,8 +211,8 @@ export const ANGULAR_DAMPING = 0.1;
 export const LINEAR_DAMPING = 0.1;
 
 // Dice appearance
-export const DICE_SIZE = 0.75;
-export const DICE_EDGE_RADIUS = 0.075;
+export const DICE_SIZE = 0.65;
+export const DICE_EDGE_RADIUS = 0.065;
 
 // Play area (1:1 square format for easier asset creation)
 export const TABLE_WIDTH = 5.5;   // X dimension
