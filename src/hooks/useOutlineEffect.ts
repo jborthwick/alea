@@ -30,11 +30,11 @@ export function useOutlineEffect() {
     const resolution = new THREE.Vector2(size.width, size.height);
     const outline = new OutlinePass(resolution, scene, camera);
     outline.edgeStrength = 6;
-    outline.edgeThickness = 2;
+    outline.edgeThickness = 1;
     outline.edgeGlow = 1.0;
     outline.visibleEdgeColor.set('#ffffff');
     outline.hiddenEdgeColor.set('#ffffff');
-    outline.pulsePeriod = 3.0; // no pulse
+    outline.pulsePeriod = 5.0;
     comp.addPass(outline);
 
     const outputPass = new OutputPass();
