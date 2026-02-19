@@ -154,8 +154,10 @@ export const useGameStore = create<GameState>()(
 
           if (newRollsRemaining === 0) {
             const outcome = compareHands(playerValues, opponentValues);
+            const tableConfig = s.selectedTable ? TABLE_CONFIGS[s.selectedTable] : null;
+            const fixedPayout = tableConfig?.payout;
             let winnings = 0;
-            if (outcome === 'win') winnings = s.currentBet * 2;
+            if (outcome === 'win') winnings = fixedPayout ?? s.currentBet * 2;
             else if (outcome === 'tie') winnings = s.currentBet;
 
             set({

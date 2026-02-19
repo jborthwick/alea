@@ -72,6 +72,7 @@ export interface TableConfig {
   id: TableId;
   name: string;
   bet: number;
+  payout?: number;      // Fixed win payout (used for free tables; paid tables pay bet × 2)
   diceSet: DiceSetId;   // Which dice art set to use
   accent: string;       // RGB triplet for --accent
   accentDark: string;   // RGB triplet for --accent-dark
@@ -86,6 +87,7 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     id: 'rooster',
     name: 'Rooster',
     bet: 0,
+    payout: 5,
     diceSet: 'alpha',
     accent: '220, 50, 50',
     accentDark: '170, 30, 30',
