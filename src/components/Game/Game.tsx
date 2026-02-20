@@ -15,6 +15,7 @@ export function Game() {
   const [tiltX, setTiltX] = useState(0);
   const [tiltY, setTiltY] = useState(0);
   const [sceneReady, setSceneReady] = useState(false);
+  // transitioning state removed — round transition is now handled by dice return-to-park animation
 
   const rollDice = useGameStore((state) => state.rollDice);
   const newRound = useGameStore((state) => state.newRound);
@@ -84,6 +85,11 @@ export function Game() {
     handleRoll(0.85);
   }, [canRoll, setIsShaking, initAudio, playRoll, vibrateRoll, handleRoll]);
 
+  // New round: reset game state immediately — dice animate back to park position on their own
+  const handleNewRound = useCallback(() => {
+    newRound();
+  }, [newRound]);
+
   // Handle shake detection
   useShakeDetection({
     onShake: (intensity) => {
@@ -128,7 +134,7 @@ export function Game() {
         canRoll={canRoll}
         isShaking={isShaking}
       />
-      <GameUI onRoll={handleRoll} onNewRound={newRound} />
+      <GameUI onRoll={handleRoll} onNewRound={handleNewRound} />
     </div>
   );
 }

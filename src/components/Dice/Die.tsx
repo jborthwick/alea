@@ -13,6 +13,25 @@ import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
 import { useGlassDebug } from '../../hooks/useGlassDebug';
 
+// Module-level flag set synchronously before newRound() fires so useFrame sees it
+// before any React state update causes a flicker frame.
+// Uses a counter so the flag stays true until ALL 5 dice have armed their own
+// per-instance isReturningToPark ref (effects don't fire in a guaranteed order).
+export let diceReturningToPark = false;
+let _diceArmedCount = 0;
+const TOTAL_DICE = 5;
+export function signalDiceReturningToPark() {
+  diceReturningToPark = true;
+  _diceArmedCount = 0;
+}
+export function ackDiceReturningToPark() {
+  _diceArmedCount++;
+  if (_diceArmedCount >= TOTAL_DICE) {
+    diceReturningToPark = false;
+    _diceArmedCount = 0;
+  }
+}
+
 interface DieProps {
   id: number;
   onSettle: (id: number, value: string) => void;
@@ -74,6 +93,13 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
   const wasHeld = useRef(false);
   const lastRollsRemaining = useRef(3);
 
+  // Return-to-park animation: triggered when scoring → betting phase change detected
+  const isReturningToPark = useRef(false);
+  const returnProgress = useRef(0);
+  const returnStartPos = useRef<THREE.Vector3>(new THREE.Vector3());
+  const returnStartRot = useRef<THREE.Quaternion>(new THREE.Quaternion());
+  const lastGamePhase = useRef<string>('');
+
   const dice = useGameStore((state) => state.dice);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const rollsRemaining = useGameStore((state) => state.rollsRemaining);
@@ -92,6 +118,28 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
 
   // Detect hold state changes and start transition
   useEffect(() => {
+    // Detect scoring → betting transition: start animated return to park
+    if (gamePhase === 'betting' && lastGamePhase.current === 'scoring') {
+      const rb = rigidBodyRef.current;
+      if (rb) {
+        const pos = rb.translation();
+        const rot = rb.rotation();
+        returnStartPos.current.set(pos.x, pos.y, pos.z);
+        returnStartRot.current.set(rot.x, rot.y, rot.z, rot.w);
+        isReturningToPark.current = true;
+        returnProgress.current = 0;
+        // Acknowledge this die is armed; module flag clears once all 5 are ready
+        ackDiceReturningToPark();
+      }
+      wasHeld.current = false;
+      isTransitioning.current = false;
+      lastRollsRemaining.current = rollsRemaining;
+      lastGamePhase.current = gamePhase;
+      return;
+    }
+
+    lastGamePhase.current = gamePhase;
+
     // Don't transition during betting phase - let parking logic handle it
     if (gamePhase === 'betting') {
       wasHeld.current = isHeld;
@@ -407,6 +455,39 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
       shakeStartTime.current = 0;
     }
 
+    // If the module flag is set but this die hasn't armed yet, freeze in place
+    // to prevent any park teleport before useEffect runs
+    if (diceReturningToPark && !isReturningToPark.current) {
+      rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      return;
+    }
+
+    // Return-to-park animation: smooth glide back to preRollPosition when new round starts
+    if (isReturningToPark.current) {
+      returnProgress.current += delta * 2.5; // speed: ~400ms total travel time
+
+      if (returnProgress.current >= 1) {
+        returnProgress.current = 1;
+        isReturningToPark.current = false;
+      }
+
+      const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const t = easeInOutCubic(returnProgress.current);
+
+      _vec3A.set(preRollPosition.x, preRollPosition.y, preRollPosition.z);
+      _vec3B.lerpVectors(returnStartPos.current, _vec3A, t);
+
+      _quat.slerpQuaternions(returnStartRot.current, ACE_UP_QUAT, t);
+
+      rb.setTranslation({ x: _vec3B.x, y: _vec3B.y, z: _vec3B.z }, true);
+      rb.setRotation({ x: _quat.x, y: _quat.y, z: _quat.z, w: _quat.w }, true);
+      rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      isPhysicsActive.current = false;
+      return;
+    }
+
     // Handle hold/unhold transitions
     if (isTransitioning.current) {
       transitionProgress.current += delta * 3; // 3 = speed (higher = faster)
@@ -439,7 +520,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
     }
 
     // Determine if we should park this frame (computed inline, no effect delay)
-    const shouldPark = gamePhase === 'betting' || ((isHeld || shouldBeInHoldTray) && !isPhysicsActive.current);
+    // Skip instant park during return-to-park animation (it handles its own movement).
+    // Also check module-level flag which is set synchronously before newRound() fires
+    // to prevent a flicker frame before the useEffect can set isReturningToPark.
+    const animating = isReturningToPark.current || diceReturningToPark;
+    const shouldPark = !animating && (gamePhase === 'betting' || ((isHeld || shouldBeInHoldTray) && !isPhysicsActive.current));
 
     if (shouldPark) {
       const pos = gamePhase === 'betting' ? preRollPosition : heldPosition;
