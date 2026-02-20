@@ -6,6 +6,7 @@ import { HandResult, OpponentHandDisplay, PlayerHandDisplay } from '../UI/HandRe
 import { SettingsPanel } from '../UI/SettingsPanel';
 import { useAudio } from '../../hooks/useAudio';
 import { useShakeDetection } from '../../hooks/useShakeDetection';
+import { signalDiceReturningToPark } from '../Dice/Die';
 import './GameUI.css';
 
 interface GameUIProps {
@@ -24,6 +25,7 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
   const shakeEnabled = useGameStore((state) => state.shakeEnabled);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [roundFading, setRoundFading] = useState(false);
 
   const { initAudio } = useAudio();
 
@@ -58,20 +60,32 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
 
   const handleNewRound = () => {
     initAudio();
-    onNewRound();
+    // Signal dice synchronously before any state change so useFrame blocks the
+    // instant-park teleport on the very next frame (before useEffect can run).
+    signalDiceReturningToPark();
+    setRoundFading(true);
+    setTimeout(() => {
+      onNewRound();
+      setRoundFading(false);
+    }, 300);
   };
 
   // Contextual overlay: shown instead of the roll button when action is needed
   // that can't be triggered by a canvas tap (scoring, all-held score)
   const showScoreOverlay = gamePhase === 'rolling' && rollsRemaining === 0;
   const showAllHeldOverlay = gamePhase === 'rolling' && rollsRemaining > 0 && allHeld;
+  const showNewRoundOverlay = gamePhase === 'scoring';
+
+  const isGameOver = useGameStore((state) => state.currentBet > 0 && state.bankroll <= 0);
 
   return (
     <div className="game-ui">
       {/* Top bar */}
       <div className="ui-top">
         <ChipDisplay />
-        <OpponentHandDisplay />
+        <div className={roundFading ? 'round-fading' : ''}>
+          <OpponentHandDisplay />
+        </div>
         <button
           className="menu-button"
           onClick={() => setSettingsOpen(true)}
@@ -91,12 +105,12 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
       />
 
       {/* Center - Hand result */}
-      <div className="ui-center">
-        <HandResult onNewRound={handleNewRound} />
+      <div className={`ui-center${roundFading ? ' round-fading' : ''}`}>
+        <HandResult />
       </div>
 
       {/* Contextual action overlay — only appears when a tap won't do */}
-      {(showScoreOverlay || showAllHeldOverlay) && (
+      {(showScoreOverlay || showAllHeldOverlay || showNewRoundOverlay) && (
         <div className="action-overlay">
           {showScoreOverlay && (
             <button className="action-button" onClick={() => onRoll()}>
@@ -108,11 +122,16 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
               HOLD ALL
             </button>
           )}
+          {showNewRoundOverlay && (
+            <button className="action-button" onClick={handleNewRound}>
+              {isGameOver ? 'GAME OVER' : 'NEW ROUND'}
+            </button>
+          )}
         </div>
       )}
 
       {/* Player hand label — overlaid on the lower table area, above the dice tray */}
-      <div className="player-hand-overlay">
+      <div className={`player-hand-overlay${roundFading ? ' round-fading' : ''}`}>
         <PlayerHandDisplay />
       </div>
 

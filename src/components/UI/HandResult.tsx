@@ -19,13 +19,25 @@ export function OpponentHandDisplay() {
   );
 }
 
-// Player's hand display (shown at bottom near held dice)
+// Player's hand display (shown at bottom near held/played dice)
 export function PlayerHandDisplay() {
   const gamePhase = useGameStore((state) => state.gamePhase);
   const dice = useGameStore((state) => state.dice);
+  const currentHand = useGameStore((state) => state.currentHand);
 
   if (gamePhase === 'betting') return null;
 
+  // During scoring show the final evaluated hand for all 5 dice
+  if (gamePhase === 'scoring') {
+    if (!currentHand) return null;
+    return (
+      <div className="player-hand-display">
+        <div className="hand-name">{currentHand.displayName}</div>
+      </div>
+    );
+  }
+
+  // During rolling show the partial hand of currently held dice
   const heldValues = dice.filter((d) => d.isHeld).map((d) => d.value);
   const heldHand = evaluatePartialHand(heldValues);
   if (!heldHand) return null;
@@ -37,18 +49,13 @@ export function PlayerHandDisplay() {
   );
 }
 
-interface HandResultProps {
-  onNewRound: () => void;
-}
-
 // Final result modal (shown in center during scoring)
-export function HandResult({ onNewRound }: HandResultProps) {
+export function HandResult() {
   const currentHand = useGameStore((state) => state.currentHand);
-  const lastWin = useGameStore((state) => state.lastWin);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const roundOutcome = useGameStore((state) => state.roundOutcome);
+  const lastWin = useGameStore((state) => state.lastWin);
   const currentBet = useGameStore((state) => state.currentBet);
-  const bankroll = useGameStore((state) => state.bankroll);
   const { playWin, playLose } = useAudio();
   const { vibrateWin, vibrateLose } = useHaptics();
   const hasPlayedSound = useRef(false);
@@ -75,25 +82,26 @@ export function HandResult({ onNewRound }: HandResultProps) {
   if (gamePhase !== 'scoring' || !roundOutcome || !currentHand) return null;
 
   const outcomeClass = roundOutcome === 'win' ? 'win' : roundOutcome === 'lose' ? 'lose' : 'tie';
-  const isGameOver = currentBet > 0 && bankroll <= 0;
+
+  let payoutText = '';
+  if (roundOutcome === 'win') {
+    payoutText = `+$${lastWin.toLocaleString()}`;
+  } else if (roundOutcome === 'lose' && currentBet > 0) {
+    payoutText = `-$${currentBet.toLocaleString()}`;
+  } else if (roundOutcome === 'tie') {
+    payoutText = 'Push';
+  }
 
   return (
-    <div className={`hand-result final expanded ${outcomeClass}`}>
+    <div className={`hand-result final ${outcomeClass}`}>
       <div className={`outcome-text ${outcomeClass}`}>
         {roundOutcome === 'win' ? 'You win!' : roundOutcome === 'lose' ? 'Dealer wins!' : 'Push'}
       </div>
-      {roundOutcome === 'win' && (
-        <div className="win-amount positive">+${lastWin}</div>
+      {payoutText && (
+        <div className={`payout-amount payout-amount--${outcomeClass}`}>
+          {payoutText}
+        </div>
       )}
-      {roundOutcome === 'tie' && (
-        <div className="win-amount tie">Bet returned</div>
-      )}
-      {roundOutcome === 'lose' && (
-        <div className="win-amount negative">-${currentBet}</div>
-      )}
-      <button className="action-button result-new-round-button" onClick={onNewRound}>
-        {isGameOver ? 'GAME OVER' : 'NEW ROUND'}
-      </button>
     </div>
   );
 }

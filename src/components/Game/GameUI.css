@@ -55,9 +55,16 @@
 .ui-center {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 12%;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+}
+
+/* Fade out result labels when new round starts */
+.round-fading {
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
   pointer-events: none;
 }
 
@@ -176,8 +183,6 @@
   .ui-center {
     flex: 1;
     min-height: 0;
-    overflow: hidden;
-    padding-top: 28%;
   }
 
   .ui-bottom {

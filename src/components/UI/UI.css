@@ -16,12 +16,44 @@
   gap: 0.25rem;
 }
 
+.chip-amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
 .chip-amount {
   font-size: 1.75rem;
   font-weight: bold;
-  color: rgb(var(--win));
-  text-shadow: 0 0 10px rgba(var(--win), 0.3);
+  color: rgb(var(--text));
 }
+
+/* Result badge — slides in next to the bankroll amount on scoring */
+.chip-result-badge {
+  font-size: 1.1rem;
+  font-weight: bold;
+  animation: badgeSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+.chip-result-badge--win {
+  color: rgb(var(--win));
+  text-shadow: 0 0 12px rgba(var(--win), 0.4);
+}
+
+.chip-result-badge--lose {
+  color: rgb(var(--lose));
+}
+
+.chip-result-badge--tie {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes badgeSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 
 .roll-counter {
   display: flex;
@@ -60,14 +92,15 @@
 }
 
 .hand-result.final {
+  position: relative;
   background: rgba(0, 0, 0, 0.6);
-  padding: 1.25rem;
+  padding: 1.25rem 2rem;
   animation: fadeIn 0.5s ease-in;
+  overflow: visible;
 }
 
 .hand-result.win {
-  border: 2px solid rgb(var(--accent));
-  box-shadow: 0 0 20px rgba(var(--accent), 0.3);
+  box-shadow: 0 0 24px rgba(var(--win), 0.25);
 }
 
 .hand-name {
@@ -77,24 +110,6 @@
   margin-top: 0.5rem;
 }
 
-.win-amount {
-  font-size: 1.5rem;
-  font-weight: bold;
-  animation: fadeIn 0.5s ease-in;
-}
-
-.win-amount.positive {
-  color: rgb(var(--accent));
-  text-shadow: 0 0 10px rgba(var(--accent), 0.5);
-}
-
-.win-amount.negative {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.win-amount.tie {
-  color: rgb(var(--accent));
-}
 
 .payout-multiplier {
   font-size: 0.875rem;
@@ -142,17 +157,6 @@
   font-weight: bold;
 }
 
-.action-button.result-new-round-button {
-  margin-top: 1rem;
-  background: #ffffff;
-  color: #111111;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.action-button.result-new-round-button:hover {
-  background: #f0f0f0;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
 
 .outcome-text.win { color: rgb(var(--accent)); }
 .outcome-text.lose { color: rgba(255, 255, 255, 0.85); }
@@ -169,19 +173,17 @@
   }
 }
 
-.hand-result.final.lose {
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+.payout-amount {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-top: 0.25rem;
+  animation: fadeIn 0.4s ease-out 0.15s both;
 }
 
-.hand-result.final.tie {
-  border: 2px solid rgb(var(--accent));
-  box-shadow: 0 0 20px rgba(var(--accent), 0.3);
-}
+.payout-amount--win  { color: rgb(var(--win)); text-shadow: 0 0 10px rgba(var(--win), 0.4); }
+.payout-amount--lose { color: rgba(255, 255, 255, 0.5); }
+.payout-amount--tie  { color: rgb(var(--accent)); }
 
-.win-amount.tie {
-  color: rgb(var(--accent));
-}
 
 /* Payout Table */
 .payout-table {
