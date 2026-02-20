@@ -53,12 +53,17 @@ function ReadyNotifier({ onReady }: { onReady?: () => void }) {
 //   → tan(hFov/2)       = target / camY
 //   → vFov              = 2 * atan(tan(hFov/2) / aspect)   [Three.js uses vertical FOV]
 //
-// Landscape (aspect ≥ 1): make TABLE_DEPTH fill ~85% of screen height.
-//   visible_half_height = camY * tan(vFov/2)
-//   target              = (TABLE_DEPTH/2) / 0.85
-//   → vFov              = 2 * atan(target / camY)
+// Landscape (aspect ≥ 1): size the FOV so the table fits in both dimensions.
+//   - Height constraint: TABLE_DEPTH fills ~85% of screen height
+//   - Width constraint:  TABLE_WIDTH fills ~85% of screen width
+//   Take the larger (more zoomed-out) FOV so both axes fit. This fixes the
+//   narrow-desktop-window case where a height-only constraint would zoom in
+//   too far horizontally.
 //
-// A smooth cross-fade between the two modes is applied around aspect ≈ 1.
+// A smooth cross-fade between portrait and landscape is applied only for
+// actual portrait viewports (aspect < 1). Landscape windows (aspect ≥ 1)
+// always use the landscape formula so that resizing a desktop browser
+// narrower does not trigger the portrait wide-FOV and crop the top/bottom.
 function calcCameraParams() {
   const aspect = window.innerWidth / window.innerHeight;
 
@@ -75,12 +80,28 @@ function calcCameraParams() {
   // Landscape FOV: size so TABLE_DEPTH fills ~50% of screen height on desktop.
   // (Table is square; on wide screens it should feel like a focused play area,
   //  not wall-to-wall. ~50% height leaves comfortable room for UI.)
-  const landscapeTanV = TABLE_HALF / (camY * 0.50);          // tan(vFov/2)
-  const landscapeVFov = 2 * Math.atan(landscapeTanV)         * 180 / Math.PI;
+  // Additionally, ensure TABLE_WIDTH fits within 90% of screen width so a
+  // narrow desktop window never clips the sides.
+  const landscapeTanV = TABLE_HALF / (camY * 0.50);          // tan(vFov/2) from height
+  const landscapeVFov_h = 2 * Math.atan(landscapeTanV) * 180 / Math.PI;
+  // Width constraint: convert horizontal coverage to vertical FOV.
+  const landscapeTanH_w = TABLE_HALF / (camY * 0.90);        // tan(hFov/2) from width
+  const landscapeVFov_w = 2 * Math.atan(landscapeTanH_w / aspect) * 180 / Math.PI;
+  // Take the larger FOV so the table fits on both axes.
+  const landscapeVFov = Math.max(landscapeVFov_h, landscapeVFov_w);
 
   // Blend weight: 0 = pure portrait, 1 = pure landscape.
-  // Transition band 0.8 → 1.2 to avoid a hard jump.
-  const t = Math.max(0, Math.min(1, (aspect - 0.8) / (1.2 - 0.8)));
+  //
+  // We blend based on viewport WIDTH, not aspect ratio. This lets us
+  // distinguish a desktop browser resized narrow (still ~700px+ tall, so
+  // aspect can dip below 1) from a real mobile phone in portrait (≤430px
+  // wide). Real phones in portrait are always ≤430 CSS px wide; desktop
+  // windows are typically ≥500px wide even when resized small.
+  //
+  // Blend zone: 390px (phone) → 480px (small tablet / large phone landscape).
+  // Below 390px → pure portrait. Above 480px → pure landscape.
+  // This means any desktop window (≥500px wide) stays fully in landscape mode.
+  const t = Math.max(0, Math.min(1, (window.innerWidth - 390) / (480 - 390)));
   const fov = portraitVFov * (1 - t) + landscapeVFov * t;
 
   return { fov, camY };
