@@ -185,9 +185,8 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
         <PlayerHandDisplay />
       </div>
 
-      {/* Bottom — roll counter dots + roll button */}
+      {/* Bottom — roll button + roll counter dots */}
       <div className="ui-bottom">
-        <RollCounter />
         <button
           className={`action-button${!canRoll && gamePhase !== 'scoring' ? ' disabled' : ''}${isShakingLocal ? ' shaking' : ''}`}
           onPointerDown={handleRollPointerDown}
@@ -198,6 +197,7 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
         >
           {buttonText}
         </button>
+        <RollCounter />
       </div>
     </div>
   );

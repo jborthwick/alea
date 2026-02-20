@@ -150,6 +150,7 @@
   align-items: center;
   gap: 0.6rem;
   flex-shrink: 0;
+  margin-bottom: 1.5rem;
 }
 
 /* Mobile styles */
@@ -173,6 +174,8 @@
 
   .ui-bottom {
     flex-shrink: 0;
+    margin-bottom: 0;
+    transform: translateY(10px);
   }
 
   .action-button {
