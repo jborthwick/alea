@@ -7,7 +7,7 @@ import { getFaceValue } from '../../physics/faceDetection';
 import { calculateRollImpulse, calculateThrowImpulse } from '../../physics/impulseCalculator';
 import { createDiceMaterials, createDiceGeometry, releaseDiceMaterials, applyGlassOverrides } from './DiceGeometry';
 import { GlowOverlay } from './GlowOverlay';
-import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, TABLE_CONFIGS, DICE_SET_MATERIALS, RAINBOW_DICE_COLORS, PLAYER_DICE_Y, PLAYER_DICE_Z, PLAYER_DICE_SPACING } from '../../game/constants';
+import { DICE_SIZE, TABLE_WIDTH, TABLE_DEPTH, DICE_SET_MATERIALS, RAINBOW_DICE_COLORS, PLAYER_DICE_Y, PLAYER_DICE_Z, PLAYER_DICE_SPACING } from '../../game/constants';
 import type { DiceSetId } from '../../game/constants';
 import type { DiceMaterialPreset } from './DiceGeometry';
 import { usePhysicsDebug } from '../../hooks/usePhysicsDebug';
@@ -103,13 +103,10 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
   const dice = useGameStore((state) => state.dice);
   const gamePhase = useGameStore((state) => state.gamePhase);
   const rollsRemaining = useGameStore((state) => state.rollsRemaining);
-  const selectedTable = useGameStore((state) => state.selectedTable);
+
   const die = dice.find((d) => d.id === id);
   const isHeld = die?.isHeld ?? false;
 
-  // Table config for glow color
-  const tableId = selectedTable ?? 'owl';
-  const tableConfig = TABLE_CONFIGS[tableId];
   const selectedDiceSet = useGameStore((state) => state.selectedDiceSet);
   const diceSet = (debugDiceSet || selectedDiceSet) as DiceSetId;
   const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
