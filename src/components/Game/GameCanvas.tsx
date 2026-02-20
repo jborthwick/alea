@@ -23,7 +23,6 @@ interface GameCanvasProps {
   tiltY?: number;
   onReady?: () => void;
   onThrow?: (intensity: number, direction: THREE.Vector2) => void;
-  onTap?: () => void;
   onHoldStart?: () => void;
   onHoldEnd?: () => void;
   canRoll?: boolean;
@@ -129,7 +128,7 @@ function CameraRig() {
 }
 
 // Inner scene component that can use leva hooks inside Canvas
-function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, onTap, onHoldStart, onHoldEnd, canRoll = false, isShaking = false }: GameCanvasProps) {
+function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, onHoldStart, onHoldEnd, canRoll = false, isShaking = false }: GameCanvasProps) {
   const { gravity } = usePhysicsDebug();
   const lighting = useLightingDebug();
   const { addObject, removeObject } = useOutlineEffect();
@@ -149,7 +148,6 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
           throwDirection={throwDirection}
           canRoll={canRoll}
           onThrow={onThrow ?? (() => {})}
-          onTap={onTap}
           onHoldStart={onHoldStart}
           onHoldEnd={onHoldEnd}
           isShaking={isShaking}
@@ -161,7 +159,7 @@ function Scene({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, 
   );
 }
 
-export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, onTap, onHoldStart, onHoldEnd, canRoll, isShaking }: GameCanvasProps) {
+export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tiltY, onReady, onThrow, onHoldStart, onHoldEnd, canRoll, isShaking }: GameCanvasProps) {
   const showDebugPanel = useGameStore((state) => state.showDebugPanel);
 
   // Camera FOV and height are managed reactively by CameraRig inside the scene.
@@ -186,7 +184,7 @@ export function GameCanvas({ rollTrigger, intensity, throwDirection, tiltX, tilt
         style={{ background: 'rgb(var(--bg))' }}
       >
         <Suspense fallback={null}>
-          <Scene rollTrigger={rollTrigger} intensity={intensity} throwDirection={throwDirection} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} onThrow={onThrow} onTap={onTap} onHoldStart={onHoldStart} onHoldEnd={onHoldEnd} canRoll={canRoll} isShaking={isShaking} />
+          <Scene rollTrigger={rollTrigger} intensity={intensity} throwDirection={throwDirection} tiltX={tiltX} tiltY={tiltY} onReady={handleReady} onThrow={onThrow} onHoldStart={onHoldStart} onHoldEnd={onHoldEnd} canRoll={canRoll} isShaking={isShaking} />
         </Suspense>
       </Canvas>
     </>

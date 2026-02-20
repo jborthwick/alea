@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { ChipDisplay } from '../UI/ChipDisplay';
 import { RollCounter } from '../UI/RollCounter';
 import { HandResult, OpponentHandDisplay, PlayerHandDisplay } from '../UI/HandResult';
 import { SettingsPanel } from '../UI/SettingsPanel';
 import { useAudio } from '../../hooks/useAudio';
+import { useHaptics } from '../../hooks/useHaptics';
 import { useShakeDetection } from '../../hooks/useShakeDetection';
 import { signalDiceReturningToPark } from '../Dice/Die';
 import './GameUI.css';
@@ -23,11 +24,14 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
   const allHeld = useGameStore((state) => state.dice.every((d) => d.isHeld));
   const opponentIsRolling = useGameStore((state) => state.opponentIsRolling);
   const shakeEnabled = useGameStore((state) => state.shakeEnabled);
+  const setIsShaking = useGameStore((state) => state.setIsShaking);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [roundFading, setRoundFading] = useState(false);
+  const [isShakingLocal, setIsShakingLocal] = useState(false);
 
-  const { initAudio } = useAudio();
+  const { playRoll, initAudio } = useAudio();
+  const { vibrateRoll } = useHaptics();
 
   const canRoll =
     !isRolling &&
@@ -35,20 +39,27 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
     rollsRemaining > 0 &&
     (gamePhase === 'betting' ? (currentBet === 0 || bankroll >= currentBet) : true);
 
+  const handleRoll = useCallback((intensity?: number) => {
+    initAudio();
+    playRoll();
+    vibrateRoll();
+    onRoll(intensity);
+  }, [initAudio, playRoll, vibrateRoll, onRoll]);
+
   // Keep refs current for shake detection callback
   const canRollRef = useRef(canRoll);
-  const onRollRef = useRef(onRoll);
+  const handleRollRef = useRef(handleRoll);
   const shakeEnabledRef = useRef(shakeEnabled);
   useEffect(() => {
     canRollRef.current = canRoll;
-    onRollRef.current = onRoll;
+    handleRollRef.current = handleRoll;
     shakeEnabledRef.current = shakeEnabled;
   });
 
   const { isSupported: shakeSupported, hasPermission, requestPermission } = useShakeDetection({
     onShake: (intensity) => {
       if (shakeEnabledRef.current && canRollRef.current) {
-        onRollRef.current(intensity);
+        handleRollRef.current(intensity);
       }
     },
   });
@@ -70,13 +81,73 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
     }, 300);
   };
 
-  // Contextual overlay: shown instead of the roll button when action is needed
-  // that can't be triggered by a canvas tap (scoring, all-held score)
-  const showScoreOverlay = gamePhase === 'rolling' && rollsRemaining === 0;
-  const showAllHeldOverlay = gamePhase === 'rolling' && rollsRemaining > 0 && allHeld;
-  const showNewRoundOverlay = gamePhase === 'scoring';
+  // Hold-to-shake: track press state for cup-shake mechanic
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdStartRef = useRef<number>(0);
+  const isShakingLocalRef = useRef(false);
 
-  const isGameOver = useGameStore((state) => state.currentBet > 0 && state.bankroll <= 0);
+  const handleRollPointerDown = useCallback((e: React.PointerEvent) => {
+    if (gamePhase === 'scoring' || !canRoll) return;
+    e.preventDefault();
+    holdStartRef.current = performance.now();
+    holdTimerRef.current = setTimeout(() => {
+      isShakingLocalRef.current = true;
+      setIsShakingLocal(true);
+      setIsShaking(true);
+    }, 150);
+  }, [gamePhase, canRoll, setIsShaking]);
+
+  const handleRollPointerUp = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+
+    if (gamePhase === 'scoring') {
+      handleNewRound();
+      return;
+    }
+
+    if (!canRoll) return;
+
+    const wasShaking = isShakingLocalRef.current;
+    isShakingLocalRef.current = false;
+    setIsShakingLocal(false);
+    setIsShaking(false);
+
+    if (wasShaking) {
+      // Scale intensity by hold duration: 150ms → 0.4, 1500ms+ → 1.0
+      const held = performance.now() - holdStartRef.current;
+      const intensity = Math.min(1.0, 0.4 + ((held - 150) / 1350) * 0.6);
+      handleRoll(intensity);
+    } else {
+      handleRoll();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gamePhase, canRoll, handleRoll, setIsShaking]);
+
+  const handleRollPointerLeave = useCallback(() => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    if (isShakingLocalRef.current) {
+      isShakingLocalRef.current = false;
+      setIsShakingLocal(false);
+      setIsShaking(false);
+    }
+  }, [setIsShaking]);
+
+  // Determine button text
+  let buttonText = 'ROLL';
+  if (gamePhase === 'scoring') {
+    buttonText = (currentBet === 0 || bankroll > 0) ? 'NEW ROUND' : 'GAME OVER';
+  } else if (rollsRemaining === 0) {
+    buttonText = 'SCORE';
+  } else if (gamePhase === 'rolling' && allHeld) {
+    buttonText = 'HOLD';
+  }
 
   return (
     <div className="game-ui">
@@ -109,35 +180,24 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
         <HandResult />
       </div>
 
-      {/* Contextual action overlay — only appears when a tap won't do */}
-      {(showScoreOverlay || showAllHeldOverlay || showNewRoundOverlay) && (
-        <div className="action-overlay">
-          {showScoreOverlay && (
-            <button className="action-button" onClick={() => onRoll()}>
-              SCORE
-            </button>
-          )}
-          {showAllHeldOverlay && (
-            <button className="action-button" onClick={() => onRoll()}>
-              HOLD ALL
-            </button>
-          )}
-          {showNewRoundOverlay && (
-            <button className="action-button" onClick={handleNewRound}>
-              {isGameOver ? 'GAME OVER' : 'NEW ROUND'}
-            </button>
-          )}
-        </div>
-      )}
-
       {/* Player hand label — overlaid on the lower table area, above the dice tray */}
       <div className={`player-hand-overlay${roundFading ? ' round-fading' : ''}`}>
         <PlayerHandDisplay />
       </div>
 
-      {/* Bottom — roll counter dots */}
+      {/* Bottom — roll counter dots + roll button */}
       <div className="ui-bottom">
         <RollCounter />
+        <button
+          className={`action-button${!canRoll && gamePhase !== 'scoring' ? ' disabled' : ''}${isShakingLocal ? ' shaking' : ''}`}
+          onPointerDown={handleRollPointerDown}
+          onPointerUp={handleRollPointerUp}
+          onPointerLeave={handleRollPointerLeave}
+          disabled={!canRoll && gamePhase !== 'scoring'}
+          style={{ touchAction: 'none' }}
+        >
+          {buttonText}
+        </button>
       </div>
     </div>
   );

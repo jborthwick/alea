@@ -17,7 +17,6 @@ interface UseGrabAndThrowOptions {
   hasNonHeldDice: boolean;
   onGrabStart?: () => void;
   onThrow: (intensity: number, direction: THREE.Vector2) => void;
-  onTap?: () => void;        // short press without movement — triggers a roll
   onHoldStart?: () => void;  // hold timer fired but no dice nearby — cup shake start
   onHoldEnd?: () => void;    // pointer released after hold without grab — cup shake end
 }
@@ -44,7 +43,6 @@ export function useGrabAndThrow({
   hasNonHeldDice,
   onGrabStart,
   onThrow,
-  onTap,
   onHoldStart,
   onHoldEnd,
 }: UseGrabAndThrowOptions): UseGrabAndThrowResult {
@@ -252,13 +250,12 @@ export function useGrabAndThrow({
       };
       const onPressUp = (e: PointerEvent) => {
         if (e.pointerId !== pointerIdRef.current) return;
-        // Released before hold timer — treat as a tap → trigger roll
+        // Released before hold timer — short tap, just cancel
         window.removeEventListener('pointermove', onPressMove);
         window.removeEventListener('pointerup', onPressUp);
         pressMoveRef.current = null;
         pressUpRef.current = null;
         reset();
-        if (canRollRef.current) onTap?.();
       };
 
       // Store refs so the hold timer can remove them on transition to grabbing
@@ -268,7 +265,7 @@ export function useGrabAndThrow({
       window.addEventListener('pointermove', onPressMove);
       window.addEventListener('pointerup', onPressUp);
     },
-    [onGrabStart, onTap, onHoldStart, onHoldEnd, handleWindowMove, handleWindowUp, reset],
+    [onGrabStart, onHoldStart, onHoldEnd, handleWindowMove, handleWindowUp, reset],
   );
 
   // Cancel gesture if canRoll becomes false during grab

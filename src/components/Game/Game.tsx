@@ -61,15 +61,6 @@ export function Game() {
     [initAudio, playRoll, vibrateRoll, handleRoll]
   );
 
-  // Tap on canvas (short press) → normal roll
-  const handleTap = useCallback(() => {
-    if (!canRoll) return;
-    initAudio();
-    playRoll();
-    vibrateRoll();
-    handleRoll(0.7);
-  }, [canRoll, initAudio, playRoll, vibrateRoll, handleRoll]);
-
   // Hold on canvas with all dice held → cup shake
   const handleHoldStart = useCallback(() => {
     if (!canRoll) return;
@@ -128,7 +119,6 @@ export function Game() {
         tiltY={tiltY}
         onReady={() => setSceneReady(true)}
         onThrow={handleThrow}
-        onTap={handleTap}
         onHoldStart={handleHoldStart}
         onHoldEnd={handleHoldEnd}
         canRoll={canRoll}

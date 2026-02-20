@@ -72,57 +72,43 @@
   pointer-events: auto;
 }
 
-/* Contextual action overlay — floats above the player dice tray.
-   Only shown for SCORE / NEW ROUND / GAME OVER / SCORE HAND. */
-.action-overlay {
-  position: absolute;
-  bottom: 10dvh;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  pointer-events: auto;
-  animation: fadeInUp 0.2s ease-out;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+/* Roll button */
 .action-button {
-  padding: 0.9rem 2.5rem;
+  padding: 1rem 3rem;
   border: none;
   border-radius: 8px;
   background: linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-dark)) 100%);
   color: rgb(var(--text-on-accent));
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   box-shadow: 0 4px 15px rgba(var(--accent), 0.4);
 }
 
-.action-button:hover {
+.action-button:hover:not(.disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(var(--accent), 0.5);
 }
 
-.action-button:active {
+.action-button:active:not(.disabled) {
   transform: translateY(0);
 }
 
-.action-button--secondary {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(var(--accent), 0.6);
-  color: rgb(var(--accent));
-  box-shadow: none;
-  font-size: 0.95rem;
-  padding: 0.7rem 2rem;
+.action-button.shaking {
+  animation: action-button-shake 0.12s infinite alternate ease-in-out;
+}
+
+@keyframes action-button-shake {
+  from { transform: scale(1.03) translateY(-1px); }
+  to   { transform: scale(0.97) translateY(1px); }
+}
+
+.action-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .shake-permission-button {
@@ -192,6 +178,10 @@
   .action-button {
     font-size: 1rem;
     padding: 0.875rem 2rem;
+  }
+
+  .action-button.shaking {
+    animation: action-button-shake 0.12s infinite alternate ease-in-out;
   }
 }
 

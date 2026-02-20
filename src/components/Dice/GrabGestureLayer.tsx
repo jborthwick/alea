@@ -14,7 +14,6 @@ interface GrabGestureLayerProps {
   throwDirection?: THREE.Vector2 | null;
   canRoll: boolean;
   onThrow: (intensity: number, direction: THREE.Vector2) => void;
-  onTap?: () => void;
   onHoldStart?: () => void;
   onHoldEnd?: () => void;
   isShaking?: boolean;
@@ -26,7 +25,6 @@ export function GrabGestureLayer({
   throwDirection,
   canRoll,
   onThrow,
-  onTap,
   onHoldStart,
   onHoldEnd,
   isShaking,
@@ -48,7 +46,6 @@ export function GrabGestureLayer({
     hasNonHeldDice,
     onGrabStart: handleGrabStart,
     onThrow,
-    onTap,
     onHoldStart,
     onHoldEnd,
   });
