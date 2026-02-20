@@ -104,8 +104,8 @@ export function GameUI({ onRoll, onNewRound }: GameUIProps) {
             </button>
           )}
           {showAllHeldOverlay && (
-            <button className="action-button action-button--secondary" onClick={() => onRoll()}>
-              SCORE HAND
+            <button className="action-button" onClick={() => onRoll()}>
+              HOLD ALL
             </button>
           )}
         </div>
