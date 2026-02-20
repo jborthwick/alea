@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useGameStore, useStoreHydrated } from '../../store/gameStore';
 import { PayoutTable } from './PayoutTable';
+import { DiceSetPicker } from './DiceSetPicker';
 import './SettingsPanel.css';
 
-type Screen = 'main' | 'howToPlay' | 'settings';
+type Screen = 'main' | 'howToPlay' | 'settings' | 'diceSet';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -89,6 +90,10 @@ export function SettingsPanel({
                 <span>Switch Tables</span>
                 <span className="menu-item-chevron">›</span>
               </button>
+              <button className="menu-item" onClick={() => setScreen('diceSet')}>
+                <span>Choose Dice</span>
+                <span className="menu-item-chevron">›</span>
+              </button>
               <button className="menu-item" onClick={() => setScreen('howToPlay')}>
                 <span>How to Play</span>
                 <span className="menu-item-chevron">›</span>
@@ -119,6 +124,24 @@ export function SettingsPanel({
                 Beat the opponent's hand to win.
               </p>
               <PayoutTable />
+            </div>
+          </>
+        )}
+
+        {/* === Choose Dice === */}
+        {screen === 'diceSet' && (
+          <>
+            <div className="settings-header">
+              <button className="menu-back" onClick={() => setScreen('main')}>
+                ←
+              </button>
+              <h2>Choose Dice</h2>
+              <button className="settings-close" onClick={onClose}>
+                ✕
+              </button>
+            </div>
+            <div className="settings-content">
+              <DiceSetPicker />
             </div>
           </>
         )}

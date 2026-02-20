@@ -43,6 +43,8 @@ interface MaterialProperties {
   attenuationDistance?: number;
   specularIntensity?: number;
   specularColor?: string;
+  emissive?: string;
+  emissiveIntensity?: number;
 }
 
 export const DICE_MATERIAL_PRESETS: Record<DiceMaterialPreset, MaterialProperties> = {
@@ -85,6 +87,8 @@ export const DICE_MATERIAL_PRESETS: Record<DiceMaterialPreset, MaterialPropertie
     attenuationDistance: 2.0,
     specularIntensity: 1,
     specularColor: '#ffffff',
+    emissive: '#028ed5',
+    emissiveIntensity: 0.25,
   },
 };
 
@@ -415,6 +419,8 @@ export interface GlassOverrides {
   attenuationDistance: number;
   specularIntensity: number;
   specularColor: string;
+  emissive: string;
+  emissiveIntensity: number;
 }
 
 // Material cache: all dice sharing the same (preset, diceSet) reuse the same material array.
@@ -480,6 +486,8 @@ export function applyGlassOverrides(materials: THREE.Material[], overrides: Glas
       mat.attenuationDistance = overrides.attenuationDistance;
       mat.specularIntensity = overrides.specularIntensity;
       mat.specularColor.set(overrides.specularColor);
+      mat.emissive.set(overrides.emissive);
+      mat.emissiveIntensity = overrides.emissiveIntensity;
       mat.needsUpdate = true;
     }
   }
@@ -521,6 +529,8 @@ function buildMaterials(preset: DiceMaterialPreset, diceSet: DiceSetId): THREE.M
         ...(materialProps.attenuationDistance !== undefined && { attenuationDistance: materialProps.attenuationDistance }),
         ...(materialProps.specularIntensity !== undefined && { specularIntensity: materialProps.specularIntensity }),
         ...(materialProps.specularColor && { specularColor: new THREE.Color(materialProps.specularColor) }),
+        ...(materialProps.emissive && { emissive: new THREE.Color(materialProps.emissive) }),
+        ...(materialProps.emissiveIntensity !== undefined && { emissiveIntensity: materialProps.emissiveIntensity }),
         ...normalProps,
       });
     } else {

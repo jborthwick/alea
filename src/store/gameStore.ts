@@ -11,7 +11,7 @@ import {
   applyTableTheme,
   resetDefaultTheme,
 } from '../game/constants';
-import type { TableId } from '../game/constants';
+import type { TableId, DiceSetId } from '../game/constants';
 
 function createInitialDice(): DieState[] {
   return Array.from({ length: 5 }, (_, i) => ({
@@ -48,6 +48,7 @@ export const useGameStore = create<GameState>()(
       shakeEnabled: false, // Starts off; user must enable each session (iOS doesn't persist permission)
       showDebugPanel: false,
       isShaking: false,
+      selectedDiceSet: 'alpha' as DiceSetId,
 
       // Opponent state
       opponentDice: createInitialOpponentDice(),
@@ -286,6 +287,8 @@ export const useGameStore = create<GameState>()(
       },
 
       setIsShaking: (v: boolean) => set({ isShaking: v }),
+
+      setDiceSet: (id: DiceSetId) => set({ selectedDiceSet: id }),
     }),
     {
       name: 'dice-poker-storage',
@@ -293,6 +296,7 @@ export const useGameStore = create<GameState>()(
         bankroll: state.bankroll,
         selectedTable: state.selectedTable,
         soundEnabled: state.soundEnabled,
+        selectedDiceSet: state.selectedDiceSet,
         // Note: shakeEnabled is intentionally NOT persisted because iOS Safari
         // doesn't persist DeviceMotion permission across page reloads
       }),

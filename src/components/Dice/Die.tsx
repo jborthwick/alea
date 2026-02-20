@@ -107,10 +107,11 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
   const die = dice.find((d) => d.id === id);
   const isHeld = die?.isHeld ?? false;
 
-  // Table config for glow color and dice set
+  // Table config for glow color
   const tableId = selectedTable ?? 'owl';
   const tableConfig = TABLE_CONFIGS[tableId];
-  const diceSet = (debugDiceSet || tableConfig.diceSet) as DiceSetId;
+  const selectedDiceSet = useGameStore((state) => state.selectedDiceSet);
+  const diceSet = (debugDiceSet || selectedDiceSet) as DiceSetId;
   const effectiveMaterial = (diceMaterial || DICE_SET_MATERIALS[diceSet]) as DiceMaterialPreset;
 
   // After third roll, all dice should move to hold tray
@@ -196,6 +197,8 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
     return baseMaterials.map((mat) => {
       const cloned = mat.clone() as THREE.MeshPhysicalMaterial;
       cloned.attenuationColor = new THREE.Color(tintColor);
+      cloned.emissive = new THREE.Color(tintColor);
+      cloned.emissiveIntensity = 0.25;
       cloned.needsUpdate = true;
       return cloned;
     });
@@ -221,12 +224,14 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
   useEffect(() => {
     if (effectiveMaterial === 'glass' && glassDebug) {
       applyGlassOverrides(materials, glassDebug);
-      // Re-apply per-die tint after debug overrides (which reset attenuationColor)
+      // Re-apply per-die tint after debug overrides (which reset attenuationColor + emissive)
       if (isRainbow) {
         const tintColor = RAINBOW_DICE_COLORS[id] ?? '#ffffff';
         for (const mat of materials) {
           if (mat instanceof THREE.MeshPhysicalMaterial) {
             mat.attenuationColor.set(tintColor);
+            mat.emissive.set(tintColor);
+            mat.emissiveIntensity = 0.25;
             mat.needsUpdate = true;
           }
         }

@@ -1,5 +1,5 @@
 import { Vector3, Quaternion } from 'three';
-import type { TableId } from '../game/constants';
+import type { TableId, DiceSetId } from '../game/constants';
 
 export type CardValue = '9' | '10' | 'J' | 'Q' | 'K' | 'A';
 
@@ -67,6 +67,7 @@ export interface GameState {
   soundEnabled: boolean;
   shakeEnabled: boolean;
   showDebugPanel: boolean;
+  selectedDiceSet: DiceSetId;
 
   // Shake-to-roll cup shake state
   isShaking: boolean;
@@ -85,4 +86,5 @@ export interface GameState {
   setRolling: (rolling: boolean) => void;
   finishRoll: () => void;
   setIsShaking: (v: boolean) => void;
+  setDiceSet: (id: DiceSetId) => void;
 }

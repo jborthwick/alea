@@ -12,6 +12,8 @@ const DEFAULTS = {
   attenuationDistance: 2.0,
   specularIntensity: 1,
   specularColor: '#ffffff',
+  emissive: '#028ed5',
+  emissiveIntensity: 0.25,
 };
 
 export type GlassDebugValues = typeof DEFAULTS;
@@ -49,7 +51,9 @@ export function useGlassDebug() {
       metalness: { value: DEFAULTS.metalness, min: 0, max: 1, step: 0.01, label: d('Metalness', DEFAULTS.metalness) },
       color: { value: DEFAULTS.color, label: 'Color' },
       envMapIntensity: { value: DEFAULTS.envMapIntensity, min: 0, max: 5, step: 0.1, label: d('Env Map', DEFAULTS.envMapIntensity) },
-      'Reset Appearance': button(() => { setRef.current?.(pick(['metalness', 'color', 'envMapIntensity'])); }),
+      emissive: { value: DEFAULTS.emissive, label: 'Emissive Color' },
+      emissiveIntensity: { value: DEFAULTS.emissiveIntensity, min: 0, max: 2, step: 0.01, label: d('Emissive', DEFAULTS.emissiveIntensity) },
+      'Reset Appearance': button(() => { setRef.current?.(pick(['metalness', 'color', 'envMapIntensity', 'emissive', 'emissiveIntensity'])); }),
     }),
     'Reset All': button(() => { setRef.current?.(DEFAULTS); }),
     'Copy Values': button((get) => {
@@ -66,6 +70,8 @@ glass: {
   attenuationDistance: ${v['Transmission.attenuationDistance']},
   specularIntensity: ${v['Specular.specularIntensity']},
   specularColor: '${v['Specular.specularColor']}',
+  emissive: '${v['Appearance.emissive']}',
+  emissiveIntensity: ${v['Appearance.emissiveIntensity']},
 },`;
 
       navigator.clipboard.writeText(code).then(() => {

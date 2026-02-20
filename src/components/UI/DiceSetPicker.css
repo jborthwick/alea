@@ -1,0 +1,60 @@
+/* Dice Set Picker — 2×2 grid of selectable cards */
+
+.dice-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.dice-set-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  font-family: inherit;
+}
+
+.dice-set-card:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.dice-set-card.selected {
+  border-color: rgb(var(--accent));
+  background: rgba(var(--accent), 0.12);
+}
+
+/* Checkmark badge on selected card */
+.dice-set-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  color: rgb(var(--accent));
+  font-size: 0.85rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* Canvas container — fixed square so all 4 canvases are equal */
+.dice-set-canvas-wrap {
+  width: 110px;
+  height: 110px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.dice-set-name {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
