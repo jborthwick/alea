@@ -458,8 +458,9 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
     // If the module flag is set but this die hasn't armed yet, freeze in place
     // to prevent any park teleport before useEffect runs
     if (diceReturningToPark && !isReturningToPark.current) {
-      rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      rb.setLinvel({ x: 0, y: 0, z: 0 }, false);
+      rb.setAngvel({ x: 0, y: 0, z: 0 }, false);
+      rb.sleep();
       return;
     }
 
@@ -524,15 +525,22 @@ export function Die({ id, onSettle, rollTrigger, intensity = 0.7, throwDirection
     // Also check module-level flag which is set synchronously before newRound() fires
     // to prevent a flicker frame before the useEffect can set isReturningToPark.
     const animating = isReturningToPark.current || diceReturningToPark;
-    const shouldPark = !animating && (gamePhase === 'betting' || ((isHeld || shouldBeInHoldTray) && !isPhysicsActive.current));
+    // Held and tray dice are frozen unconditionally — isPhysicsActive is not checked
+    // because that flag stays true while other dice are still rolling, which left held
+    // dice unfrozen and subject to gravity/collision from the rolling dice (causing twitch).
+    const shouldPark = !animating && (gamePhase === 'betting' || isHeld || shouldBeInHoldTray);
 
     if (shouldPark) {
       const pos = gamePhase === 'betting' ? preRollPosition : heldPosition;
       const quat = gamePhase === 'betting' ? ACE_UP_QUAT : settledRotation.current;
-      rb.setTranslation(pos, true);
-      rb.setRotation({ x: quat.x, y: quat.y, z: quat.z, w: quat.w }, true);
-      rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      // Use wakeUp=false so setTranslation/setRotation don't re-activate the body.
+      // Then explicitly sleep it so Rapier stops simulating between frames —
+      // without this, gravity acts on the body in the physics step and causes jitter.
+      rb.setTranslation(pos, false);
+      rb.setRotation({ x: quat.x, y: quat.y, z: quat.z, w: quat.w }, false);
+      rb.setLinvel({ x: 0, y: 0, z: 0 }, false);
+      rb.setAngvel({ x: 0, y: 0, z: 0 }, false);
+      rb.sleep();
       isPhysicsActive.current = false;
       return;
     }
