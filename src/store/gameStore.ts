@@ -46,7 +46,7 @@ export const useGameStore = create<GameState>()(
       lastWin: 0,
       soundEnabled: true,
       shakeEnabled: false, // Starts off; user must enable each session (iOS doesn't persist permission)
-      showDebugPanel: import.meta.env.DEV,
+      showDebugPanel: false,
       isShaking: false,
 
       // Opponent state

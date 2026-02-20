@@ -2,6 +2,7 @@ import { useGameStore } from '../../store/gameStore';
 import { useEffect, useRef } from 'react';
 import { useAudio } from '../../hooks/useAudio';
 import { useHaptics } from '../../hooks/useHaptics';
+import { evaluatePartialHand } from '../../game/handEvaluator';
 import './UI.css';
 
 // Opponent's hand display (shown at top near opponent dice)
@@ -20,14 +21,18 @@ export function OpponentHandDisplay() {
 
 // Player's hand display (shown at bottom near held dice)
 export function PlayerHandDisplay() {
-  const currentHand = useGameStore((state) => state.currentHand);
   const gamePhase = useGameStore((state) => state.gamePhase);
+  const dice = useGameStore((state) => state.dice);
 
-  if (!currentHand || gamePhase === 'betting') return null;
+  if (gamePhase === 'betting') return null;
+
+  const heldValues = dice.filter((d) => d.isHeld).map((d) => d.value);
+  const heldHand = evaluatePartialHand(heldValues);
+  if (!heldHand) return null;
 
   return (
     <div className="player-hand-display">
-      <div className="hand-name">{currentHand.displayName}</div>
+      <div className="hand-name">{heldHand.displayName}</div>
     </div>
   );
 }

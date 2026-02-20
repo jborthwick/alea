@@ -34,6 +34,42 @@ function getPrimaryCards(counts: Map<CardValue, number>): CardValue[] {
   return sortedEntries.map(([value]) => value);
 }
 
+// Evaluate a partial hand (1–5 dice) based only on the provided values.
+// Returns null if fewer than 2 dice (not enough to form a meaningful hand label).
+export function evaluatePartialHand(values: CardValue[]): HandResult | null {
+  if (values.length < 2) return null;
+
+  const counts = countValues(values);
+  const countArray = Array.from(counts.values()).sort((a, b) => b - a);
+
+  let rank: HandRank;
+
+  if (values.length === 5 && countArray[0] === 5) {
+    rank = 'five-of-a-kind';
+  } else if (countArray[0] === 4) {
+    rank = 'four-of-a-kind';
+  } else if (countArray[0] === 3 && countArray[1] === 2) {
+    rank = 'full-house';
+  } else if (values.length === 5 && isStraight(values)) {
+    rank = 'straight';
+  } else if (countArray[0] === 3) {
+    rank = 'three-of-a-kind';
+  } else if (countArray[0] === 2 && countArray[1] === 2) {
+    rank = 'two-pair';
+  } else if (countArray[0] === 2) {
+    rank = 'one-pair';
+  } else {
+    return null; // No meaningful hand from held dice alone
+  }
+
+  return {
+    rank,
+    displayName: HAND_NAMES[rank],
+    payout: PAYOUTS[rank],
+    primaryCards: getPrimaryCards(counts),
+  };
+}
+
 export function evaluateHand(values: CardValue[]): HandResult {
   if (values.length !== 5) {
     throw new Error('Must have exactly 5 dice');

@@ -139,10 +139,10 @@
   text-align: center;
 }
 
-/* Player hand label — floats over the lower portion of the table, above the dice tray */
+/* Player hand label — floats at the lower edge of the table, above the player dice tray */
 .player-hand-overlay {
   position: absolute;
-  bottom: 18dvh;
+  bottom: 25dvh;
   left: 0;
   right: 0;
   display: flex;
